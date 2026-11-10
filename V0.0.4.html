@@ -757,7 +757,6 @@ function update(dt){
   }
 
   for(const mon of s.monsters){
-    if(mon.dead) continue;
     const kr=KRUGERS.find(k=>k.id===mon.typeId);
 
     if(kr.id === 'black'){
@@ -772,6 +771,23 @@ function update(dt){
           p.slowT = Math.max(p.slowT, 5); p.slowMult = 0.7;
           p.fixSlowT = Math.max(p.fixSlowT, 10); p.fixSlowMult = 0.7;
           s.message = '⬛ ЧЁРНЫЙ ВЫЛЕЗ! ЗАМЕДЛЕНИЕ!'; s.messageT = 2;
+          if(!s.noticedThisFloor['black']){
+            s.noticedThisFloor['black'] = true;
+            const mult = (selectedChar.id === 'scientist') ? 2 : 1;
+            const before = save.krugerPct['black'] || 0;
+            if(before < 100){
+              const gain = 5 * mult;
+              save.krugerPct['black'] = Math.min(100, before + gain);
+              s.message = `⬛ +${gain}% ЧЁРНЫЙ`;
+              s.messageT = 2;
+              if(save.krugerPct['black'] >= 100 && !save.decorations.includes('kr_black')){
+                save.decorations.push('kr_black');
+                s.message = '🎁 УКРАШЕНИЕ: ЧЁРНАЯ МЕТКА!';
+                s.messageT = 3;
+              }
+              writeSave(save);
+            }
+          }
         }
       } else {
         const sees = d < visionPx;
@@ -790,23 +806,7 @@ function update(dt){
           shootBullet(mon.x, mon.y, p.x, p.y, 220);
         }
       }
-      if(d < mon.r + p.r){
-        const mult = (selectedChar.id === 'scientist') ? 2 : 1;
-        const before = save.krugerPct['black'] || 0;
-        if(before < 100){
-          const gain = 5 * mult;
-          save.krugerPct['black'] = Math.min(100, before + gain);
-          s.message = `⬛ +${gain}% ЧЁРНЫЙ`;
-          s.messageT = 2;
-          if(save.krugerPct['black'] >= 100 && !save.decorations.includes('kr_black')){
-            save.decorations.push('kr_black');
-            s.message = '🎁 УКРАШЕНИЕ: ЧЁРНАЯ МЕТКА!';
-            s.messageT = 3;
-          }
-          writeSave(save);
-        }
-        mon.dead = true;
-      }
+      // НЕ исчезает при касании, НЕ даёт процентов при касании
       continue;
     }
 
@@ -866,7 +866,6 @@ function update(dt){
     }
   }
 
-  // Пули
   for(let i=s.bullets.length-1;i>=0;i--){
     const b=s.bullets[i];
     b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
@@ -936,7 +935,6 @@ function draw(){
     }
   }
 
-  // Карты на полу
   for(const card of s.cards){
     ctx.fillStyle='#ffcc55'; ctx.fillRect(card.x-8, card.y-11, 16, 22);
     ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.strokeRect(card.x-8, card.y-11, 16, 22);
@@ -959,10 +957,8 @@ function draw(){
   ctx.globalAlpha=1;
 
   for(const mon of s.monsters){
-    if(mon.dead) continue;
     const kr=KRUGERS.find(k=>k.id===mon.typeId);
     if(kr.id==='black' && mon.disguised){
-      // Как чёрная карта
       ctx.fillStyle='#111'; ctx.fillRect(mon.x-8, mon.y-11, 16, 22);
       ctx.strokeStyle='#555'; ctx.lineWidth=1; ctx.strokeRect(mon.x-8, mon.y-11, 16, 22);
       ctx.fillStyle='#ff4444'; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
