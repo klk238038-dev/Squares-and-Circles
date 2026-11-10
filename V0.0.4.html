@@ -178,7 +178,7 @@ const KRUGERS=[
 ];
 
 const KRUGER_DECORATIONS={
-red:{id:'kr_red',name:'КРИВАЯ МАСКА',icon:'🎭',desc:'+7.5% Рукастый / -5% Рукастый',fromKruger:'red'},
+red:{id:'kr_red',name:'КРИВАЯ МАСКА',icon:'🎭',desc:'+7.5% к починке / −5% Рукастый',fromKruger:'red'},
 blue:{id:'kr_blue',name:'СИНИЕ КРОССОВКИ',icon:'👟',desc:'+7.5% к рывку',fromKruger:'blue'},
 yellow:{id:'kr_yellow',name:'ЗОЛОТАЯ ШПОРА',icon:'⚡',desc:'+10% к скорости',fromKruger:'yellow'},
 black:{id:'kr_black',name:'ЧЁРНАЯ МЕТКА',icon:'🃏',desc:'+5% к починке, +10% Рукастый',fromKruger:'black'},
@@ -447,7 +447,7 @@ function getEnemyCount(f){
 
 function applyDecorations(stats){
   for(const decId of save.equippedDecorations){
-    if(decId==='kr_red'){ stats.handy *= 1.075; stats.handy *= 0.95; }
+    if(decId==='kr_red'){ stats.fix *= 1.075; stats.handy *= 0.95; }
     else if(decId==='kr_blue'){ stats.dash *= 1.075; }
     else if(decId==='kr_yellow'){ stats.speed *= 1.10; }
     else if(decId==='kr_black'){ stats.fix *= 1.05; stats.handy *= 1.10; }
@@ -806,7 +806,6 @@ function update(dt){
           shootBullet(mon.x, mon.y, p.x, p.y, 220);
         }
       }
-      // НЕ исчезает при касании, НЕ даёт процентов при касании
       continue;
     }
 
