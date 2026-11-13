@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Квадраты и Кругеры v0.0.9</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{background:#0a0a0a;color:#c8ffc8;font-family:'Courier New',monospace;overflow:hidden;width:100%;height:100%;touch-action:none;overscroll-behavior:none}
+#hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;font-size:11px;padding:6px 10px;color:#7dff9a;background:rgba(10,10,10,.85);border-bottom:1px solid #1a2f1a;z-index:5;flex-wrap:wrap;gap:6px}
+canvas{position:fixed;top:0;left:0;background:#0d0f0d;display:block}
+.screen{position:fixed;inset:0;background:rgba(5,8,5,.97);display:none;justify-content:flex-start;align-items:center;flex-direction:column;gap:12px;color:#c8ffc8;z-index:20;text-align:center;padding:60px 20px 100px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.screen.on{display:flex}
+.screen h1{font-size:22px;color:#ff9de2;letter-spacing:2px;margin-bottom:4px}
+.screen p{font-size:13px;color:#7dff9a;max-width:520px;line-height:1.55}
+.screen button{background:#111811;color:#c8ffc8;border:1px solid #2a4a2a;padding:12px 26px;font-family:inherit;font-size:15px;cursor:pointer;border-radius:4px;margin:4px}
+.screen button:active{border-color:#4aff4a;background:#1b2f1b}
+.screen button.danger{border-color:#5a2a2a;color:#ff9b9b}
+.screen button.danger:active{border-color:#ff6b6b;background:#2a1010}
+.screen button.active-event{border-color:#7dff9a;color:#7dff9a;background:#1b2f1b}
+.screen input{padding:10px 14px;background:#111811;color:#c8ffc8;border:1px solid #2a4a2a;font-family:inherit;font-size:15px;border-radius:4px;text-align:center;width:260px}
+#menu .logo{font-size:26px;color:#ff9de2;letter-spacing:3px;text-shadow:0 0 14px #ff9de2;margin-bottom:2px}
+#menuBook{position:fixed;top:10px;right:10px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,#2a4a2a 0%,#0f140f 100%);border:2px solid #7dff9a;color:#ff9de2;font-size:28px;display:none;justify-content:center;align-items:center;cursor:pointer;z-index:25}
+#menuBook.on{display:flex}
+.coins{color:#ffcc55;font-size:13px;margin:6px 0 8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.coins span{background:#111811;padding:4px 8px;border-radius:4px;border:1px solid #2a4a2a}
+.maxfloor-info{color:#7dc4ff;font-size:12px;margin-bottom:14px;background:#111811;padding:4px 10px;border-radius:4px;border:1px solid #2a4a2a;display:inline-block}
+.tabs{display:flex;gap:8px;margin:8px 0 14px;border:1px solid #2a4a2a;border-radius:6px;padding:4px;background:#0f140f;flex-wrap:wrap;justify-content:center}
+.tab{padding:8px 16px;cursor:pointer;font-size:12px;border-radius:4px;color:#5a7a5a;font-family:inherit;background:transparent;border:none;transition:.15s}
+.tab.active{background:#1b2f1b;color:#ff9de2}
+.chars{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:900px;margin:10px 0 16px}
+.char{width:200px;padding:14px 12px;background:#0f140f;border:1px solid #2a4a2a;border-radius:6px;cursor:pointer;transition:.15s;text-align:left;display:flex;flex-direction:column;justify-content:space-between}
+.char.selected{background:#152615;box-shadow:0 0 16px #2a6f2a inset}
+.char.locked{opacity:.65}
+.char.locked:hover{border-color:#ff9de2}
+.char .name{font-size:15px;color:#ff9de2;margin-bottom:6px;text-align:center}
+.char .icon{width:54px;height:54px;margin:0 auto 8px;border-radius:8px;border:2px solid #2a4a2a;display:flex;justify-content:center;align-items:center;font-size:26px}
+.char.placeholder .icon{color:#3a5a3a}
+.stats{font-size:11px;color:#7dff9a;line-height:1.55;margin-bottom:8px}
+.stats b{color:#c8ffc8}
+.price-top{font-size:11px;color:#ffcc55;text-align:center;margin-bottom:8px;font-weight:bold;border-bottom:1px dashed #2a4a2a;padding-bottom:4px}
+.ability{font-size:10px;color:#ffcc55;margin-bottom:6px;line-height:1.4;background:rgba(255,204,85,0.05);padding:5px;border-radius:4px;text-align:center}
+.quest-txt{font-size:10px;color:#ff9de2;line-height:1.3;padding:4px;border-top:1px dashed #2a4a2a;margin-top:6px;text-align:center}
+.quest-done{color:#7dff9a!important}
+.krug-list{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:900px;margin:10px 0}
+.krug{width:180px;padding:12px 10px;background:#0f140f;border:1px solid #2a4a2a;border-radius:6px;text-align:left}
+.krug .name{font-size:14px;color:#ff9de2;margin-bottom:2px;text-align:center}
+.krug .maxfloor{font-size:10px;color:#5a7a5a;text-align:center;margin-bottom:6px}
+.krug-model{width:52px;height:52px;border-radius:50%;border:2px solid #fff;margin:0 auto 8px;display:flex;justify-content:center;align-items:center;gap:5px;box-sizing:border-box}
+.krug-model .eye{width:7px;height:7px;background:#000;border-radius:1px}
+.krug.placeholder .krug-model{background:#0f140f!important;border-color:#000000}
+.krug .stats{font-size:11px;line-height:1.5;margin-bottom:6px}
+.krug .bar{height:8px;background:#000;border:1px solid #2a4a2a;border-radius:4px;overflow:hidden;margin:6px 0}
+.krug .bar-fill{height:100%;background:linear-gradient(90deg,#7dff9a,#ff9de2);transition:width 0.3s}
+.krug .pct{font-size:10px;color:#7dff9a;text-align:center}
+.slots{display:flex;gap:12px;margin:8px 0 14px;justify-content:center}
+.slot{width:70px;height:70px;border:2px dashed #2a4a2a;border-radius:8px;display:flex;justify-content:center;align-items:center;font-size:28px;color:#3a5a3a;background:#0f140f}
+.slot.filled{border-style:solid;border-color:#7dff9a;background:#152615}
+.item{width:180px;padding:12px 10px;background:#0f140f;border:1px solid #2a4a2a;border-radius:6px;cursor:pointer;text-align:left;transition:.15s}
+.item.equipped{border-color:#7dff9a;background:#152615}
+.item.locked{opacity:.5;cursor:not-allowed}
+.item .name{font-size:13px;color:#ff9de2;margin-bottom:4px;text-align:center}
+.item .icon{width:42px;height:42px;margin:0 auto 6px;border-radius:6px;border:2px solid #2a4a2a;display:flex;justify-content:center;align-items:center;font-size:20px}
+.item .stats{font-size:10px;line-height:1.4;text-align:center}
+#touch{position:fixed;inset:0;pointer-events:none;z-index:3}
+#joystick{position:absolute;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:120px;height:120px;border-radius:50%;background:rgba(20,40,20,.35);border:1px solid #2a4a2a;pointer-events:auto;touch-action:none}
+#stick{position:absolute;left:50%;top:50%;width:52px;height:52px;margin-left:-26px;margin-top:-26px;border-radius:50%;background:radial-gradient(circle,#7dff9a 0%,#2a6f2a 100%);border:1px solid #7dff9a;pointer-events:none}
+.btn{position:absolute;border-radius:50%;background:rgba(20,40,20,.5);border:1px solid #2a4a2a;color:#c8ffc8;font-family:inherit;font-size:12px;font-weight:bold;display:flex;justify-content:center;align-items:center;pointer-events:auto;touch-action:none;text-align:center;line-height:1.1;padding:4px;transition:.1s}
+.btn:active,.btn.on{background:rgba(40,90,40,.7);border-color:#4aff4a}
+.btn.disabled{opacity:.4;border-color:#3a3a3a;color:#5a7a5a}
+#btnFix{right:14px;bottom:calc(100px + env(safe-area-inset-bottom,0px));width:76px;height:76px;font-size:12px}
+#btnDash{right:calc(14px + 84px);bottom:calc(20px + env(safe-area-inset-bottom,0px));width:64px;height:64px;font-size:11px}
+#btnSkill{right:14px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:64px;height:64px;font-size:11px;border-color:#ff9de2;color:#ff9de2;display:none}
+#btnSkill.visible{display:flex}
+#btnSkill:active,#btnSkill.on{border-color:#ffccff;background:rgba(90,40,90,.7);color:#ffccff}
+#btnSkill.cd{opacity:.4;border-color:#3a3a3a;color:#5a7a5a}
+#hint{position:fixed;bottom:calc(2px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font-size:10px;color:#3a5a3a;z-index:2;pointer-events:none}
+.rainbow-border {border: 2px solid transparent !important;background: linear-gradient(#0f140f, #0f140f) padding-box, linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3) border-box !important;}
+.half-rainbow-border {border: 2px solid transparent !important;background: linear-gradient(#0f140f, #0f140f) padding-box, linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #4da6ff, #4da6ff) border-box !important;}
+.blue-border {border-color: #4da6ff !important;}
+.red-border {border-color: #ff0000 !important;}
+.black-border {border-color: #000000 !important;}
+
+/* ИНВЕНТАРЬ */
+#inventory-bar {position:fixed;bottom:calc(10px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:6;}
+.inv-slot {width:50px;height:50px;border-radius:50%;background:rgba(80,80,80,0.6);border:2px solid #555;display:flex;justify-content:center;align-items:center;font-size:22px;color:#aaa;cursor:pointer;pointer-events:auto;}
+.inv-slot.has-item {border-color:#ffd93d;background:rgba(50,50,0,0.8);color:#fff;}
+.inv-slot.hidden {display:none;}
+</style>
+</head>
+<body>
+<div id="hud">
+<span id="hudFloor">ЭТАЖ 1</span>
+<span id="hudHP">♥3/3</span>
+<span id="hudStamina">⚡3/3</span>
+<span id="hudMach">⚙0/3</span>
+<span id="hudCards">🃏0</span>
+</div>
+<canvas id="cv"></canvas>
+<div id="touch">
+<div id="joystick"><div id="stick"></div></div>
+<div class="btn" id="btnFix">ЧИНИТЬ</div>
+<div class="btn" id="btnDash">РЫВОК</div>
+<div class="btn" id="btnSkill">СКИЛЛ</div>
+</div>
+<div id="hint">Джойстик · ЧИНИТЬ · РЫВОК · СКИЛЛ</div>
+<button id="menuBook" title="Кругеры">📖</button>
+
+<div id="inventory-bar">
+  <div class="inv-slot" id="inv0"></div>
+  <div class="inv-slot" id="inv1"></div>
+  <div class="inv-slot" id="inv2"></div>
+</div>
+
+<div class="screen on" id="menu">
+<div class="logo">КВАДРАТЫ</div>
+<div class="sub" style="color:#5a7a5a;font-size:12px;margin-bottom:18px;">// И КРУГЕРЫ · v0.0.9</div>
+<div class="coins" id="mainCurrency"></div>
+<div class="maxfloor-info" id="mainMaxFloor">МАКС ЭТАЖ — 0</div>
+<button id="btnPlay">▶ ИГРАТЬ</button>
+<button id="btnChars">👤 ПЕРСОНАЖИ</button>
+<button id="btnDecor">👑 УКРАШЕНИЯ</button>
+<button id="btnEvents">🎉 ИВЕНТЫ</button>
+<button id="btnCodes">🔑 КОДЫ</button>
+<button id="btnReset" class="danger" style="margin-top:20px;">🗑 СБРОСИТЬ ПРОГРЕСС</button>
+</div>
+
+<div class="screen" id="eventsScreen">
+<h1>🎉 ИВЕНТЫ</h1>
+<p style="font-size:11px;color:#5a7a5a">Включи или выключи сезонный ивент</p>
+<button id="btnEventOff">🗑 ВЫКЛЮЧИТЬ ИВЕНТ</button>
+<button disabled style="opacity:.4">❓ ???</button>
+<button disabled style="opacity:.4">❓ ???</button>
+<button id="btnEventWinter">❄️ ЗИМА</button>
+<button id="btnEventsBack">◀ НАЗАД</button>
+</div>
+
+<div class="screen" id="charsScreen">
+<h1>ПЕРСОНАЖИ</h1>
+<div class="coins" id="charsCoins"></div>
+<div class="tabs">
+<button class="tab active" id="tabNormal">ОБЫЧНЫЕ</button>
+<button class="tab" id="tabMain">МЕЙНЫ</button>
+<button class="tab" id="tabEvent">ИВЕНТ</button>
+<button class="tab" id="tabAdmin">АДМИН</button>
+</div>
+<div class="chars" id="charsList"></div>
+<button id="btnCharsBack">◀ НАЗАД</button>
+</div>
+
+<div class="screen" id="decorScreen">
+<h1>УКРАШЕНИЯ</h1>
+<p style="font-size:11px;color:#5a7a5a">Максимум 2 одетых. Открываются за 100% изучения кругера, за код или покупаются за монеты.</p>
+<div class="slots">
+<div class="slot" id="decSlot0">＋</div>
+<div class="slot" id="decSlot1">＋</div>
+</div>
+<div class="chars" id="decorList"></div>
+<button id="btnDecorBack">◀ НАЗАД</button>
+</div>
+
+<div class="screen" id="krugScreen">
+<h1>КРУГЕРЫ</h1>
+<div class="tabs">
+<button class="tab active" id="tabKrugNormal">ОБЫЧНЫЕ</button>
+<button class="tab" id="tabKrugEvent">ИВЕНТОВЫЕ</button>
+</div>
+<div class="krug-list" id="krugList"></div>
+<button id="btnKrugBack">◀ НАЗАД</button>
+</div>
+
+<div class="screen" id="codesScreen">
+<h1>КОДЫ</h1>
+<p style="font-size:12px">Введи код и нажми «Применить».</p>
+<input id="codeInput" placeholder="ВВЕДИ КОД" autocomplete="off">
+<button id="btnApplyCode">✅ ПРИМЕНИТЬ</button>
+<p style="font-size:11px;color:#5a7a5a;margin-top:10px" id="codeMsg"></p>
+<button id="btnCodesBack">◀ НАЗАД</button>
+</div>
+
+<div class="screen" id="resetScreen">
+<h1>СБРОСИТЬ?</h1>
+<p>Все данные будут удалены. Это действие нельзя отменить.</p>
+<button id="resetYes" class="danger">ДА, СБРОСИТЬ</button>
+<button id="resetNo">◀ ОТМЕНА</button>
+</div>
+
+<div class="screen" id="endScreen">
+<h1 id="ovTitle">ИГРА ОКОНЧЕНА</h1>
+<p id="ovText"></p>
+<button id="ovRetry">ЗАНОВО</button>
+<button id="ovMenu">В МЕНЮ</button>
+</div>
+
+<!-- МАГАЗИН -->
+<div class="screen" id="shopScreen">
+<h1>🛒 МАГАЗИН</h1>
+<div id="shopDesc" style="font-size:12px;color:#7dff9a;margin-bottom:10px;">Выбери один предмет</div>
+<div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;" id="shopGrid"></div>
+<button id="btnShopClose">🚪 УЙТИ</button>
+</div>
+
+<!-- КАРТЫ -->
+<div class="screen" id="cardsScreen">
+<h1>🃏 ВЫБЕРИ КАРТУ</h1>
+<div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:20px;" id="cardsGrid"></div>
+</div>
+
+<script>
+const START_FLOOR = 1;
+const SAVE_KEY='kvad_krug_v001';
+
+const CHARACTERS=[
+{id:'cube',name:'КВАДРАТ',icon:'⬛',price:250,color:'#7dff9a',lives:3,speed:3,dash:3,stamina:3,fix:3,handy:3,category:'normal',passive:'+8% к починке за каждого кругера на этаже (макс +48%)',active:null},
+{id:'rect',name:'ПРЯМОУГОЛЬНИК',icon:'🔲',price:250,color:'#f39c12',lives:3,speed:3,dash:3,stamina:3,fix:3,handy:3,category:'normal',passive:'При уроне скорость +50% на 3с',active:null},
+{id:'plain',name:'БЕЗЫМЯННЫЙ',icon:'⬜',price:100,color:'#aaaaaa',lives:3,speed:1,dash:1,stamina:1,fix:1,handy:1,category:'normal',passive:'Кругеры видят его в 3 раза лучше',active:null},
+{id:'lucky',name:'УДАЧЛИВЫЙ',icon:'🎲',price:350,color:'#ffcc55',lives:3,speed:3,dash:4,stamina:3,fix:2,handy:3,category:'normal',passive:null,active:'+15% к случайному стату на 10с (КД 25)',quest:{type:'totalFloors',target:15,label:'Выжить суммарно 15 этажей'}},
+{id:'scientist',name:'ИССЛЕДОВАТЕЛЬ',icon:'🔬',price:1000,color:'#7dc4ff',lives:3,speed:2,dash:3,stamina:3,fix:4,handy:3,category:'normal',passive:'x2 изучение кругеров',active:null,quest:{type:'kruger50',label:'50% на любом кругере'}},
+{id:'magnet',name:'МАГНИТ',icon:'🧲',price:1500,color:'#ff4444',lives:3,speed:2,dash:3,stamina:5,fix:3,handy:2,category:'normal',passive:null,active:'Телепорт в машину или лифт (10 клеток, КД 25)',quest:{type:'kruger_green_50',label:'50% на Салатовом'}},
+{id:'lighter',name:'ФОНАРЩИК',icon:'🔦',price:1250,color:'#ffd700',lives:3,speed:3,dash:1,stamina:4,fix:4,handy:3,category:'normal',passive:'В темноте видит на 10 клеток, но кругеры видят его в 2 раза лучше',active:'Убирает темноту на 8с (КД 45)',quest:{type:'darkFloors',target:5,label:'Пережить 5 тёмных этажей'}},
+{id:'pusher',name:'ТОЛКАЧ',icon:'👊',price:1750,color:'#ff8c00',lives:3,speed:4,dash:2,stamina:4,fix:2,handy:3,category:'normal',passive:null,active:'Оттолкнуть кругеров в 4×4 клетках на 5 клеток (КД 30)',quest:{type:'buyChar',target:'magnet',label:'Купить МАГНИТ'}},
+{id:'twin',name:'ДВОЙНИК',icon:'🔄',price:2000,color:'#a0a0a0',lives:3,speed:3,dash:3,stamina:3,fix:3,handy:3,category:'normal',passive:'На нечётных: 👟5/🔧3. На чётных: 👟3/🔧5',active:null},
+{id:'stamina_master',name:'СТАМИНА-МАСТЕР',icon:'🌀',price:5000,color:'#00ffff',lives:2,speed:3,dash:5,stamina:3,fix:3,handy:2,category:'main',passive:'Кругеры видят его в 2 раза хуже',active:'Полная стамина (КД 75)',quest:{type:'kruger_pink_100',label:'100% на РОЗОВОМ'}},
+{id:'bait',name:'ПРИМАНКА',icon:'🎯',price:3750,color:'#ff69b4',lives:2,speed:5,dash:3,stamina:4,fix:1,handy:3,category:'main',passive:'Видит все машины в темноте',active:'Притянуть всех кругеров + стан 5с (КД 40)',quest:{type:'kruger_turquoise_100_and_lucky',label:'100% на БИРЮЗОВОМ + УДАЧЛИВЫЙ'}},
+{id:'svetlyachok',name:'СВЕТЛЯЧОК',icon:'🏮',price:4500,color:'#ffcc00',lives:2,speed:2,dash:2,stamina:3,fix:5,handy:4,category:'main',passive:'Всегда видит машины в темноте',active:'Убирает темноту на 5с (КД 50)',quest:{type:'kruger_slower_100_and_lighter',label:'100% на ЗАМЕДЛИТЕЛЕ + ФОНАРЩИК'}},
+{id:'snow_dasher',name:'СНЕЖНЫЙ РЫВКОВЫЙ',icon:'❄️',price:300,priceEvent:true,color:'#a0d8ff',lives:3,speed:3,dash:3,stamina:3,fix:3,handy:3,category:'event',passive:null,active:'Ускорение ×2 + неуяз 0.4с (КД 23)'},
+{id:'snow_healer',name:'СНЕЖНЫЙ ХИЛЕР',icon:'⛄',price:700,priceEvent:true,color:'#c8f0ff',lives:3,speed:2,dash:4,stamina:3,fix:3,handy:3,category:'event',passive:null,active:'Хил 1HP за 50 карт (КД 200)',quest:{type:'kruger_event_seer_50',label:'50% на ВСЕВИДЯЩЕМ'}},
+{id:'radar',name:'РАДАР',icon:'📡',price:1500,priceEvent:true,color:'#7dffcc',lives:3,speed:4,dash:4,stamina:3,fix:2,handy:2,category:'event',passive:null,active:'Ускорение ×2 + неуяз 0.75с (КД 30)'},
+{id:'gift',name:'ПОДАРОК',icon:'🎁',price:2500,priceCoin:2500,priceEvent:3000,color:'#ff6b6b',lives:2,speed:3,dash:2,stamina:5,fix:2,handy:4,category:'event',passive:'Аура 3×3, +50% рывка при кругере в ауре',active:'Превратиться в подарок 8с (КД 90)',quest:{type:'kruger_event_coal_100',label:'100% на УГЛЕ'}},
+{id:'admin',name:'АДМИН',icon:'👑',price:0,color:'#ffd700',lives:3,speed:5,dash:5,stamina:5,fix:5,handy:5,category:'admin',passive:null,active:null,codeOnly:true}
+];
+
+const KRUGERS=[
+{id:'red',name:'КРАСНЫЙ',icon:'🔴',color:'#ff0000',damage:1,speed:3,vision:4,ability:null,chance:25,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'blue',name:'ГОЛУБОЙ',icon:'🔵',color:'#4da6ff',damage:1,speed:3,vision:5,ability:null,chance:25,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'purple',name:'ПУРПУРНЫЙ',icon:'🟣',color:'#9b59b6',damage:1,speed:4,vision:6.25,ability:null,chance:20,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'black',name:'ЧЁРНЫЙ',icon:'⬛',color:'#1a1a1a',damage:0,speed:0,vision:3,ability:'card',chance:10,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'green',name:'ЗЕЛЁНЫЙ',icon:'🟢',color:'#9acd32',damage:1,speed:2.5,vision:7,ability:'shoot_10',chance:10,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'salat',name:'САЛАТОВЫЙ',icon:'🟩',color:'#7cfc00',damage:1,speed:2.5,vision:6,ability:'shoot',chance:10,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'crimson',name:'БАГРОВЫЙ',icon:'🟥',color:'#8b0000',damage:1,speed:2,vision:8,ability:null,chance:25,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'mimic',name:'МИМИК',icon:'👹',color:'#4a2a4a',damage:1,speed:0,vision:4.8,ability:'mimic',chance:20,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'neon',name:'НЕОН',icon:'💡',color:'#ff3333',damage:1,speed:3,vision:6,ability:'glow',chance:20,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'pink',name:'РОЗОВЫЙ',icon:'🌸',color:'#ffb6c1',damage:1,speed:3.5,vision:7.5,ability:'drain_stamina',chance:5,minFloor:5,maxFloor:Infinity,category:'normal'},
+{id:'turquoise',name:'БИРЮЗОВЫЙ',icon:'🩵',color:'#00ffff',damage:1,speed:4.5,vision:10,ability:null,chance:5,minFloor:5,maxFloor:Infinity,category:'normal'},
+{id:'slower',name:'ЗАМЕДЛИТЕЛЬ',icon:'🐌',color:'#a0a0a0',damage:1,speed:3,vision:8,ability:'slow_and_dark',chance:5,minFloor:5,maxFloor:Infinity,category:'normal'},
+{id:'avenger',name:'МСТИТЕЛЬ',icon:'💀',color:'#cc0000',damage:99999,speed:2.1,vision:7.5,ability:'avenger',chance:0,minFloor:1,maxFloor:Infinity,category:'normal'},
+{id:'snowball',name:'СНЕЖОК',icon:'❄️',color:'#a0d8ff',damage:1,speed:3,vision:5,ability:'glow',chance:25,minFloor:1,maxFloor:Infinity,category:'event'},
+{id:'seer',name:'ВСЕВИДЯЩИЙ',icon:'👁',color:'#7dffcc',damage:1,speed:1,vision:999999,ability:null,chance:20,minFloor:1,maxFloor:Infinity,category:'event'},
+{id:'twilight',name:'СУМЕРЕЧНЫЙ',icon:'🌆',color:'#5a3a6a',damage:1,speed:1.5,vision:8,ability:'twilight',chance:10,minFloor:1,maxFloor:Infinity,category:'event'},
+{id:'coal',name:'УГОЛЬ',icon:'🔥',color:'#4a2a0a',damage:1,speed:4.6,vision:9,ability:'coal',chance:5,minFloor:5,maxFloor:Infinity,category:'event'}
+];
+
+const ITEMS = [
+{id:'straw',icon:'🍓',name:'Клубника',desc:'+5% к скорости на 10с',rarity:'Обычный',price:30},
+{id:'cherry',icon:'🍒',name:'Вишня',desc:'+10% к рандом. стату на 10с',rarity:'Необычный',price:50},
+{id:'apple',icon:'🍎',name:'Яблоко',desc:'+50% к рандом. стату на 20с',rarity:'Редкий',price:55},
+{id:'bandage',icon:'🩹',name:'Пластырь',desc:'Хилит 1 HP',rarity:'Очень редкий',price:60},
+{id:'pill',icon:'💊',name:'Таблетка',desc:'Хилит полностью HP',rarity:'Ультра редкий',price:100}
+];
+
+const CARDS = [
+{id:'stamina',name:'+1 Стамина',desc:'Увеличивает макс. стамину на 1',max:1,weight:20},
+{id:'item',name:'Рандомный предмет',desc:'Даёт случайный предмет из инвентаря',max:999,weight:30},
+{id:'hp',name:'Хил 1 HP',desc:'Увеличивает макс. HP на 1',max:999,weight:20},
+{id:'cards',name:'+15 Карт',desc:'Даёт 15 карт',max:999,weight:25},
+{id:'dark',name:'Меньше темноты',desc:'Уменьшает шанс темных этажей на 5%',max:3,weight:15},
+{id:'cd',name:'КД скилла -5с',desc:'Уменьшает КД скилла на 5с',max:2,weight:10},
+{id:'fix',name:'Починка быстрее',desc:'Уменьшает время починки на 0.5с',max:1,weight:10}
+];
+
+const KRUGER_DECORATIONS={
+red:{id:'kr_red',name:'КРИВАЯ МАСКА',icon:'🎭',desc:'+7.5% к починке / −5% Рукастый',fromKruger:'red'},
+blue:{id:'kr_blue',name:'СИНИЕ КРОССОВКИ',icon:'👟',desc:'+7.5% к рывку',fromKruger:'blue'},
+purple:{id:'kr_purple',name:'ЗОЛОТАЯ ШПОРА',icon:'⚡',desc:'+10% к скорости',fromKruger:'purple'},
+black:{id:'kr_black',name:'ЧЁРНАЯ МЕТКА',icon:'🃏',desc:'+5% к починке, +10% Рукастый',fromKruger:'black'},
+green:{id:'kr_green',name:'🌿 ЖИЗНЕННЫЙ СОК',icon:'🌿',desc:'+1 стамина в зависимости от HP',fromKruger:'green'},
+salat:{id:'kr_salat',name:'САЛАТОВЫЙ ВЕЕР',icon:'🍀',desc:'10-30 карт в начале каждого этажа',fromKruger:'salat'},
+crimson:{id:'kr_crimson',name:'🩸 БАГРОВЫЙ ГРУЗ',icon:'🩸',desc:'−10% к скорости и рывку',fromKruger:'crimson'},
+mimic:{id:'kr_mimic',name:'👺 МАСКА МИМИКА',icon:'👺',desc:'На чётных этажах +10% к ходьбе и рывку',fromKruger:'mimic'},
+pink:{id:'kr_pink',name:'🌸 РОЗОВЫЙ ПУЛЬС',icon:'🌸',desc:'40% шанс вернуть 1 стамину за починку',fromKruger:'pink'},
+turquoise:{id:'kr_turquoise',name:'💎 БИРЮЗОВЫЙ АЗАРТ',icon:'💎',desc:'+25% скорости за карту, складывается',fromKruger:'turquoise'},
+slower:{id:'kr_slower',name:'⏳ ПЕСОЧНЫЕ ЧАСЫ',icon:'⏳',desc:'Мгновенная починка 1 машины, если все сломаны',fromKruger:'slower'},
+neon:{id:'kr_neon',name:'🔦 НЕОНОВЫЙ ФОНАРЬ',icon:'🔦',desc:'+25% к радиусу света в темноте',fromKruger:'neon'},
+avenger:{id:'kr_avenger',name:'КУПОН',icon:'🎫',desc:'−50% к цене в магазине',fromKruger:'avenger'},
+snowball:{id:'kr_snowball',name:'ТЁПЛЫЙ ШАРФ',icon:'🧣',desc:'🎄 валюта ×2',fromKruger:'snowball'},
+seer:{id:'kr_seer',name:'ОКО',icon:'👁',desc:'+1 стамина за нажатие СКИЛЛ',fromKruger:'seer'},
+twilight:{id:'kr_twilight',name:'ТУМАННЫЙ ПЛАЩ',icon:'🌫️',desc:'−10% скорость / кругеры видят +10%',fromKruger:'twilight'},
+coal:{id:'kr_coal',name:'ПРАЗДНИЧНЫЙ БАНТ',icon:'🎀',desc:'Аура +1 клетка (3×3 → 4×4)',fromKruger:'coal'}
+};
+
+const COIN_DECORATIONS=[
+{id:'d_capital',name:'СТАРТОВЫЙ КАПИТАЛ',icon:'💰',desc:'30 карт в начале игры',price:200},
+{id:'d_file',name:'НАПИЛЬНИК',icon:'🔧',desc:'+5% к починке',price:350},
+{id:'d_goldhands',name:'ЗОЛОТЫЕ РУКИ',icon:'🧤',desc:'+40% Рукастый',price:750,machinesReq:30},
+// НОВЫЕ УКРАШЕНИЯ 0.0.9
+{id:'d_floor50',name:'ФИНИШЕР',icon:'🏁',desc:'+25% скорость и рывок на 10с, когда все машины починены',price:1000, reqFloors: 50},
+{id:'d_speed_dash',name:'СПОРТКОСТЮМ',icon:'🏃',desc:'+5% к скорости и рывку',price:400},
+{id:'d_stamina',name:'ЭНЕРГЕТИК',icon:'🔋',desc:'+1 к макс. стамине',price:750},
+{id:'d_dice',name:'ИГРАЛЬНАЯ КОСТЬ',icon:'🎲',desc:'Каждые 10с: 15% шанс восстановить 1 стамину',price:1250, reqFloors: 50, reqItems: 50},
+{id:'d_headstart',name:'СТАРТОВЫЙ ТОЛЧОК',icon:'🔧',desc:'Первая машина начинает с 40% починки (1 раз за этаж)',price:325},
+{id:'d_noob',name:'ТАЛИСМАН НУБА',icon:'🪬',desc:'При ударе: стан всех кругеров 3с',codeOnly:true}
+];
+
+function defaultSave(){
+  return {
+    coins:250, eventCurrency:0, eventActive:false,
+    maxFloor:0, unlocked:[], lastChar:null, krugerPct:{}, codesUsed:[],
+    totalFloors:0, totalMachinesFixed:0, darkFloors:0, totalItemsPicked: 0,
+    decorations:[], equippedDecorations:[],
+    darkChanceReduction: 0, cardPicked:{}, repairBonus: 0
+  }
+}
+
+function loadSave(){
+  try{
+    const r=localStorage.getItem(SAVE_KEY);
+    if(!r) return defaultSave();
+    const d=JSON.parse(r);
+    const s={...defaultSave(),...d};
+    if(!Array.isArray(s.unlocked)) s.unlocked=[];
+    s.unlocked = s.unlocked.filter(id => CHARACTERS.some(c => c.id === id));
+    if(!s.lastChar || !s.unlocked.includes(s.lastChar)) s.lastChar=null;
+    KRUGERS.forEach(k=>{if(s.krugerPct[k.id]===undefined)s.krugerPct[k.id]=0;});
+    if(!Array.isArray(s.codesUsed)) s.codesUsed=[];
+    if(typeof s.maxFloor!=='number') s.maxFloor=0;
+    if(typeof s.totalFloors!=='number') s.totalFloors=0;
+    if(typeof s.totalMachinesFixed!=='number') s.totalMachinesFixed=0;
+    if(typeof s.darkFloors!=='number') s.darkFloors=0;
+    if(typeof s.totalItemsPicked!=='number') s.totalItemsPicked=0;
+    if(typeof s.eventCurrency!=='number') s.eventCurrency=0;
+    if(typeof s.eventActive!=='boolean') s.eventActive=false;
+    if(!Array.isArray(s.decorations)) s.decorations=[];
+    if(!Array.isArray(s.equippedDecorations)) s.equippedDecorations=[];
+    if(typeof s.darkChanceReduction!=='number') s.darkChanceReduction=0;
+    if(typeof s.cardPicked!=='object') s.cardPicked={};
+    if(typeof s.repairBonus!=='number') s.repairBonus=0;
+    s.equippedDecorations = s.equippedDecorations.slice(0,2);
+    return s;
+  }catch{return defaultSave()}
+}
+function writeSave(s){try{localStorage.setItem(SAVE_KEY,JSON.stringify(s))}catch{}}
+
+let save = loadSave();
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+let selectedChar = save.lastChar ? CHARACTERS.find(c=>c.id===save.lastChar) : null;
+let state=null, running=false, lastT=0, W=0, H=0;
+
+function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight}
+window.addEventListener('resize',resize);
+
+const input={ax:0,ay:0,fix:false,dash:false,skill:false};
+const keys={};
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' ')e.preventDefault();if(e.key.toLowerCase()==='q')input.skill=true});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function circleRectCollide(cx,cy,r,rect){const nx=Math.max(rect.x,Math.min(cx,rect.x+rect.w)),ny=Math.max(rect.y,Math.min(cy,rect.y+rect.h)),dx=cx-nx,dy=cy-ny;return dx*dx+dy*dy<r*r}
+function isInsideWall(x,y,pad=0){for(const w of state.walls)if(x>w.x-pad&&x<w.x+w.w+pad&&y>w.y-pad&&y<w.y+w.h+pad)return true;return false}
+function isInsideWallRect(x,y,w,h){for(const wall of state.walls)if(x<wall.x+wall.w&&x+w>wall.x&&y<wall.y+wall.h&&y+h>wall.y)return true;return false}
+function tryMove(ent,nx,ny){const r=ent.r;let okX=true,okY=true;for(const w of state.walls){if(circleRectCollide(nx,ent.y,r,w))okX=false;if(circleRectCollide(ent.x,ny,r,w))okY=false}if(okX)ent.x=nx;if(okY)ent.y=ny}
+
+function safeTeleport(ent, tx, ty){
+  const r = ent.r || 13;
+  tx = Math.max(r+15, Math.min(W-r-15, tx));
+  ty = Math.max(r+15, Math.min(H-r-15, ty));
+  if(!isInsideWall(tx, ty, r)){ ent.x = tx; ent.y = ty; return; }
+  for(let rad=15; rad<200; rad+=15){
+    for(let ang=0; ang<Math.PI*2; ang+=Math.PI/8){
+      const nx = tx + Math.cos(ang)*rad;
+      const ny = ty + Math.sin(ang)*rad;
+      if(nx>r+15 && nx<W-r-15 && ny>r+15 && ny<H-r-15 && !isInsideWall(nx, ny, r)){
+        ent.x = nx; ent.y = ny; return;
+      }
+    }
+  }
+}
+
+function updateCurrency(){
+  let html=`<span>💰 <b>${save.coins}</b></span>`;
+  if(save.eventActive) html += `<span>🎄 <b>${save.eventCurrency}</b></span>`;
+  $('mainCurrency').innerHTML=html;
+  $('charsCoins').innerHTML=html;
+  $('mainMaxFloor').textContent = `МАКС ЭТАЖ — ${save.maxFloor}`;
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('on'));
+  if(id) $(id).classList.add('on');
+  $('menuBook').classList.toggle('on', ['menu','charsScreen','decorScreen','krugScreen','codesScreen','resetScreen','eventsScreen'].includes(id));
+  if(id!=='game'){ running=false; }
+}
+function showMenu(){updateCurrency();showScreen('menu')}
+
+function questMet(c){
+  if(!c.quest) return true;
+  const q=c.quest;
+  switch(q.type){
+    case 'totalFloors': return save.totalFloors >= q.target;
+    case 'kruger50': return KRUGERS.some(k => (save.krugerPct[k.id]||0) >= 50);
+    case 'kruger_pink_100': return (save.krugerPct['pink']||0) >= 100;
+    case 'kruger_turquoise_100_and_lucky': return (save.krugerPct['turquoise']||0) >= 100 && save.unlocked.includes('lucky');
+    case 'kruger_slower_100_and_lighter': return (save.krugerPct['slower']||0) >= 100 && save.unlocked.includes('lighter');
+    case 'kruger_green_50': return (save.krugerPct['salat']||0) >= 50;
+    case 'kruger_event_seer_50': return (save.krugerPct['seer']||0) >= 50;
+    case 'kruger_event_coal_100': return (save.krugerPct['coal']||0) >= 100;
+    case 'darkFloors': return save.darkFloors >= q.target;
+    case 'buyChar': return save.unlocked.includes(q.target);
+    default: return false;
+  }
+}
+function questProgressText(c){
+  if(!c.quest) return '';
+  const q=c.quest;
+  let cur='';
+  switch(q.type){
+    case 'totalFloors': cur=`${save.totalFloors}/${q.target}`; break;
+    case 'kruger50': cur=`${Math.max(...KRUGERS.map(k=>save.krugerPct[k.id]||0))}%`; break;
+    case 'kruger_pink_100': cur=`${save.krugerPct['pink']||0}%`; break;
+    case 'kruger_turquoise_100_and_lucky': cur=`Бирюзовый: ${save.krugerPct['turquoise']>=100?'✔':'✗'} / Удачливый: ${save.unlocked.includes('lucky')?'✔':'✗'}`; break;
+    case 'kruger_slower_100_and_lighter': cur=`Замедлитель: ${save.krugerPct['slower']>=100?'✔':'✗'} / Фонарщик: ${save.unlocked.includes('lighter')?'✔':'✗'}`; break;
+    case 'kruger_green_50': cur=`${save.krugerPct['salat']||0}%`; break;
+    case 'kruger_event_seer_50': cur=`${save.krugerPct['seer']||0}%`; break;
+    case 'kruger_event_coal_100': cur=`${save.krugerPct['coal']||0}%`; break;
+    case 'darkFloors': cur=`${save.darkFloors}/${q.target}`; break;
+    case 'buyChar': cur=save.unlocked.includes(q.target)?'✔':'✗'; break;
+  }
+  return (questMet(c)?'✔ ':'') + q.label + ' (' + cur + ')';
+}
+
+function getBorderClass(id, category) {
+  if(id === 'gift' || id === 'coal') return 'half-rainbow-border';
+  if(id === 'avenger') return 'red-border';
+  if(category === 'event') return 'blue-border';
+  if(id === 'admin') return 'red-border';
+  if(['pink', 'turquoise', 'slower', 'stamina_master', 'bait', 'svetlyachok'].includes(id)) return 'rainbow-border';
+  return '';
+}
+
+let currentTab='normal';
+function selectCharTab(t){
+  currentTab=t;
+  document.querySelectorAll('#charsScreen .tab').forEach(el=>el.classList.remove('active'));
+  $('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active');
+  renderChars();
+}
+$('tabNormal').onclick=()=>selectCharTab('normal');
+$('tabMain').onclick=()=>selectCharTab('main');
+$('tabEvent').onclick=()=>selectCharTab('event');
+$('tabAdmin').onclick=()=>selectCharTab('admin');
+
+function renderChars(){
+  updateCurrency();
+  $('charsList').innerHTML='';
+  const catMap={normal:'normal',main:'main',event:'event',admin:'admin'};
+  const list = CHARACTERS.filter(c => c.category === catMap[currentTab]);
+  const placeholders = (currentTab==='event') ? 8 : 0;
+  for(let i=0;i<placeholders;i++){
+    const div=document.createElement('div');
+    div.className='char placeholder black-border';
+    div.innerHTML=`<div class="name" style="color:#5a7a5a">???</div><div class="price-top" style="color:#5a7a5a;border-color:#1a1a1a;">СКОРО</div><div class="icon" style="color:#3a5a3a">❓</div><div class="stats">Заглушка</div>`;
+    $('charsList').appendChild(div);
+  }
+  for(const c of list){
+    const owned = save.unlocked.includes(c.id);
+    const questOk = questMet(c);
+    const priceCoinOK = !c.priceCoin || save.coins >= c.priceCoin;
+    const priceEventOK = !c.priceEvent || save.eventCurrency >= c.price;
+    const canBuy = !owned && !c.codeOnly && questOk && priceCoinOK && priceEventOK;
+    const isSelected = selectedChar && selectedChar.id===c.id;
+    const div=document.createElement('div');
+    const bClass = getBorderClass(c.id, c.category);
+    div.className='char'+(owned?'':' locked')+(isSelected?' selected ':' ')+bClass;
+    
+    let priceTxt='';
+    if(c.priceCoin && c.priceEvent) priceTxt=`💰 ${c.priceCoin} + 🎄 ${c.priceEvent}`;
+    else if(c.priceEvent) priceTxt=`🎄 ${c.price}`;
+    else priceTxt=`💰 ${c.price}`;
+    
+    let topHtml='';
+    if(!owned){
+      if(c.codeOnly) topHtml=`<div class="price-top">🔑 СЕКРЕТНЫЙ КОД</div>`;
+      else topHtml=`<div class="price-top">${priceTxt}</div>`;
+    } else topHtml=`<div class="price-top" style="color:#7dff9a;border-color:#7dff9a;">✔ КУПЛЕН</div>`;
+    
+    let bottomHtml='';
+    if(owned){
+      bottomHtml = isSelected
+        ? `<div class="price-top" style="color:#7dff9a;border-color:#2a4a2a;margin-top:8px;border-top:1px dashed #2a4a2a;border-bottom:none;padding-top:6px;">✔ ВЫБРАН</div>`
+        : `<div class="price-top" style="color:#7dc4ff;border-color:#2a4a2a;margin-top:8px;border-top:1px dashed #2a4a2a;border-bottom:none;padding-top:6px;">Нажми, чтобы выбрать</div>`;
+    } else if(c.codeOnly){
+      bottomHtml = `<div class="price-top" style="color:#ff6b6b;border-color:#2a4a2a;margin-top:8px;border-top:1px dashed #2a4a2a;border-bottom:none;padding-top:6px;">🔒 Нужен код</div>`;
+    } else if(!questOk){
+      bottomHtml = `<div class="price-top" style="color:#ff6b6b;border-color:#2a4a2a;margin-top:8px;border-top:1px dashed #2a4a2a;border-bottom:none;padding-top:6px;">🔒 Квест не выполнен</div>`;
+    } else if(!canBuy){
+      bottomHtml = `<div class="price-top" style="color:#ff6b6b;border-color:#2a4a2a;margin-top:8px;border-top:1px dashed #2a4a2a;border-bottom:none;padding-top:6px;">❌ Не хватает</div>`;
+    } else {
+      bottomHtml = `<div class="price-top" style="color:#7dff9a;border-color:#2a4a2a;margin-top:8px;border-top:1px dashed #2a4a2a;border-bottom:none;padding-top:6px;">✅ Купить</div>`;
+    }
+    const abTxt = (c.passive?`⚡ ${c.passive}`:'') + (c.passive && c.active?'<br>':'') + (c.active?`🎯 ${c.active}`:'') || '—';
+    const qTxt = c.quest ? `<div class="quest-txt ${questOk?'quest-done':''}">${questProgressText(c)}</div>` : '';
+    div.innerHTML=`<div class="name">${c.name}</div>${topHtml}<div class="icon" style="color:${c.color}">${c.icon}</div><div class="stats">❤️<b>${c.lives}</b> · 👟<b>${c.speed}</b> · 💨<b>${c.dash}</b><br>⚡<b>${c.stamina}</b> · 🔧<b>${c.fix}</b> · 🛠<b>${c.handy}</b></div><div class="ability">${abTxt}</div>${qTxt}${bottomHtml}`;
+    div.onclick=()=>{
+      if(owned){
+        selectedChar=c; save.lastChar=c.id; writeSave(save); renderChars();
+      } else if(canBuy){
+        if(c.priceCoin) save.coins -= c.priceCoin;
+        if(c.priceEvent) save.eventCurrency -= c.priceEvent;
+        else if(c.priceEvent && !c.priceCoin) save.eventCurrency -= c.price;
+        save.unlocked.push(c.id); save.lastChar=c.id;
+        selectedChar=c; writeSave(save); renderChars(); updateCurrency();
+      }
+    };
+    $('charsList').appendChild(div);
+  }
+}
+
+function renderDecor(){
+  updateCurrency();
+  for(let i=0;i<2;i++){
+    const id=save.equippedDecorations[i];
+    const slot=$('decSlot'+i);
+    if(id){
+      const dec = Object.values(KRUGER_DECORATIONS).find(d=>d.id===id) || COIN_DECORATIONS.find(d=>d.id===id);
+      slot.textContent = dec ? dec.icon : '＋';
+      slot.classList.add('filled');
+    } else { slot.textContent='＋'; slot.classList.remove('filled'); }
+  }
+  $('decorList').innerHTML='';
+  const all = [...Object.values(KRUGER_DECORATIONS), ...COIN_DECORATIONS];
+  for(const d of all){
+    const owned = save.decorations.includes(d.id);
+    const equipped = save.equippedDecorations.includes(d.id);
+    const fromKruger = d.fromKruger;
+    const div=document.createElement('div');
+    div.className='item'+(equipped?' equipped':'')+(owned?'':' locked');
+    let bottom = '';
+    
+    if(owned){
+      bottom = equipped
+        ? `<div style="color:#ff9de2;text-align:center;font-size:10px;margin-top:6px">✔ НАДЕТО</div>`
+        : `<div style="color:#7dc4ff;text-align:center;font-size:10px;margin-top:6px">Надеть</div>`;
+    } else if(fromKruger){
+      const krug = KRUGERS.find(k=>k.id===fromKruger);
+      bottom = `<div style="color:#ff6b6b;text-align:center;font-size:10px;margin-top:6px">🔒 100% на ${krug.name}</div>`;
+    } else if(d.codeOnly){
+      bottom = `<div style="color:#ff6b6b;text-align:center;font-size:10px;margin-top:6px">🔑 НУЖЕН КОД</div>`;
+    } else {
+      let reqOk = true;
+      let reqText = '';
+      
+      if(d.machinesReq && save.totalMachinesFixed < d.machinesReq) {
+          reqOk = false; reqText = `Починить ${d.machinesReq} машин (${save.totalMachinesFixed}/${d.machinesReq})`;
+      }
+      if(d.reqFloors && save.totalFloors < d.reqFloors) {
+          reqOk = false; reqText = `Пройти ${d.reqFloors} этажей (${save.totalFloors}/${d.reqFloors})`;
+      }
+      if(d.reqItems && save.totalItemsPicked < d.reqItems) {
+          reqOk = false; reqText = `Собрать ${d.reqItems} предметов (${save.totalItemsPicked}/${d.reqItems})`;
+      }
+
+      if(!reqOk){
+        bottom = `<div style="color:#ff6b6b;text-align:center;font-size:10px;margin-top:6px">🔒 ${reqText}</div>`;
+      } else {
+        bottom = `<div style="color:#ffcc55;text-align:center;font-size:10px;margin-top:6px">${d.price}💰</div>`;
+      }
+    }
+    div.innerHTML=`<div class="name">${d.name}</div><div class="icon">${d.icon}</div><div class="stats">${d.desc}</div>${bottom}`;
+    div.onclick=()=>{
+      if(owned){
+        const idx = save.equippedDecorations.indexOf(d.id);
+        if(idx>=0){ save.equippedDecorations.splice(idx,1); }
+        else {
+          if(save.equippedDecorations.length>=2) save.equippedDecorations.shift();
+          save.equippedDecorations.push(d.id);
+        }
+        writeSave(save); renderDecor();
+      } else if(!fromKruger && !d.codeOnly){
+        let reqOk = true;
+        if(d.machinesReq && save.totalMachinesFixed < d.machinesReq) reqOk = false;
+        if(d.reqFloors && save.totalFloors < d.reqFloors) reqOk = false;
+        if(d.reqItems && save.totalItemsPicked < d.reqItems) reqOk = false;
+        
+        if(!reqOk) return;
+        if(save.coins >= d.price){
+          save.coins -= d.price;
+          save.decorations.push(d.id);
+          writeSave(save); renderDecor(); updateCurrency();
+        }
+      }
+    };
+    $('decorList').appendChild(div);
+  }
+}
+
+let krugTab='normal';
+$('tabKrugNormal').onclick=()=>{krugTab='normal';document.querySelectorAll('#krugScreen .tab').forEach(t=>t.classList.remove('active'));$('tabKrugNormal').classList.add('active');renderKrug()};
+$('tabKrugEvent').onclick=()=>{krugTab='event';document.querySelectorAll('#krugScreen .tab').forEach(t=>t.classList.remove('active'));$('tabKrugEvent').classList.add('active');renderKrug()};
+
+function renderKrug(){
+  $('krugList').innerHTML='';
+  if(krugTab==='event'){
+    for(let i=0;i<8;i++){
+      const div=document.createElement('div'); div.className='krug placeholder black-border';
+      div.innerHTML=`<div class="name" style="color:#5a7a5a">???</div><div class="maxfloor" style="color:#3a5a3a">СКОРО</div><div class="krug-model" style="background:#0f140f;border-color:#000">❓</div><div class="stats">Заглушка</div>`;
+      $('krugList').appendChild(div);
+    }
+  }
+  const list = KRUGERS.filter(k => k.category === krugTab && (krugTab==='event' ? k.id !== 'avenger' : true));
+  for(const k of list){
+    const pct=save.krugerPct[k.id]||0;
+    const maxFloorTxt = k.maxFloor===Infinity ? '∞' : k.maxFloor;
+    const dmgText = k.damage>=99999?'Ваншот':k.damage;
+    let visText = k.vision >= 999999 ? '∞' : k.vision;
+    let abil = '-';
+    if(k.ability==='card') abil='маскируется под карту';
+    else if(k.ability==='shoot' || k.ability==='shoot_10') abil='стреляет пулей';
+    else if(k.ability==='drain_stamina') abil='забирает стамину пулей';
+    else if(k.ability==='glow') abil='светится в темноте';
+    else if(k.ability==='twilight') abil='на тёмном: 👟4.6';
+    else if(k.ability==='coal') abil='при карте видит всё 3с';
+    else if(k.ability==='mimic') abil='просыпается от рывка';
+    else if(k.ability==='slow_and_dark') abil='замедляет и гасит свет';
+    else if(k.ability==='avenger') abil='телепорт к машине через 5с';
+    
+    const bClass = getBorderClass(k.id, k.category);
+    const div=document.createElement('div');div.className='krug '+bClass;
+    div.innerHTML=`<div class="name">${k.name}</div><div class="maxfloor">Макс. этаж: ${maxFloorTxt}</div><div class="krug-model" style="background:${k.color}"><div class="eye"></div><div class="eye"></div></div><div class="stats">⚔ Урон: <b>${dmgText}</b><br>👟 Скорость: <b>${k.speed}</b><br>👁 Видимость: <b>${visText}</b><br>✨ <b>${abil}</b></div><div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div><div class="pct">${pct}%${pct>=100?' ✔ ОТКРЫТ':''}</div>`;
+    $('krugList').appendChild(div);
+  }
+}
+
+$('btnApplyCode').onclick=()=>{
+  const code=$('codeInput').value.trim().toUpperCase();
+  const msg=$('codeMsg');
+  if(!code){msg.textContent='Введи код';msg.style.color='#ff6b6b';return}
+  const rewards = {MONEY:50, CIRCLE:50};
+  if(rewards[code]){
+    if(save.codesUsed.includes(code)){msg.textContent='Код уже использован';msg.style.color='#ff6b6b';return}
+    save.coins += rewards[code]; save.codesUsed.push(code); writeSave(save); updateCurrency();
+    msg.textContent=`+${rewards[code]} 💰`; msg.style.color='#7dff9a'; $('codeInput').value='';
+  } else if(code==='MAINS'){
+    if(save.codesUsed.includes('MAINS')){msg.textContent='Код уже использован';msg.style.color='#ff6b6b';return}
+    save.coins += 200;
+    if(!save.decorations.includes('d_noob')) save.decorations.push('d_noob');
+    save.codesUsed.push('MAINS'); writeSave(save); updateCurrency();
+    msg.textContent='MAINS: +200💰 и ТАЛИСМАН НУБА!'; msg.style.color='#7dff9a'; $('codeInput').value='';
+  } else if(code==='ADMIN_TOP'){
+    if(save.codesUsed.includes('ADMIN_TOP')){msg.textContent='Код уже использован';msg.style.color='#ff6b6b';return}
+    save.coins=1000000;
+    save.eventCurrency=1000000;
+    CHARACTERS.forEach(c=>{if(!save.unlocked.includes(c.id)) save.unlocked.push(c.id)});
+    KRUGERS.forEach(k=>{save.krugerPct[k.id]=100});
+    Object.values(KRUGER_DECORATIONS).forEach(d=>{if(!save.decorations.includes(d.id)) save.decorations.push(d.id)});
+    COIN_DECORATIONS.forEach(d=>{if(!save.decorations.includes(d.id)) save.decorations.push(d.id)});
+    if(!save.lastChar) save.lastChar='admin';
+    selectedChar = CHARACTERS.find(c=>c.id===save.lastChar) || null;
+    save.codesUsed.push('ADMIN_TOP'); writeSave(save); updateCurrency();
+    msg.textContent='ADMIN_TOP: ВСЁ АКТИВИРОВАНО!'; msg.style.color='#7dff9a'; $('codeInput').value='';
+  } else {
+    msg.textContent='Неверный код'; msg.style.color='#ff6b6b';
+  }
+};
+
+$('btnEventWinter').onclick=()=>{ save.eventActive = true; writeSave(save); updateCurrency(); updateEventButtons(); };
+$('btnEventOff').onclick=()=>{ if(!save.eventActive){ alert('ИВЕНТА НЕТ'); return; } save.eventActive = false; writeSave(save); updateCurrency(); updateEventButtons(); };
+function updateEventButtons(){ const w=$('btnEventWinter'); w.textContent = save.eventActive ? '❄️ ЗИМА ✔ ВКЛЮЧЕН' : '❄️ ЗИМА'; w.classList.toggle('active-event', save.eventActive); }
+
+let joyId=null, joyCenter={x:0,y:0}, joyRadius=50;
+function updateJoyCenter(){const r=$('joystick').getBoundingClientRect();joyCenter.x=r.left+r.width/2;joyCenter.y=r.top+r.height/2;joyRadius=r.width*0.42}
+$('joystick').addEventListener('touchstart',e=>{e.preventDefault();joyId=e.changedTouches[0].identifier;updateJoyCenter();handleJoyMove(e)},{passive:false});
+$('joystick').addEventListener('touchmove',e=>{handleJoyMove(e)},{passive:false});
+$('joystick').addEventListener('touchend',handleJoyEnd);
+$('joystick').addEventListener('touchcancel',handleJoyEnd);
+function handleJoyMove(e){if(joyId===null)return;for(const t of e.changedTouches){if(t.identifier!==joyId)continue;let dx=t.clientX-joyCenter.x,dy=t.clientY-joyCenter.y;const d=Math.hypot(dx,dy);if(d>joyRadius){dx=dx/d*joyRadius;dy=dy/d*joyRadius}$('stick').style.transform=`translate(${dx}px,${dy}px)`;input.ax=dx/joyRadius;input.ay=dy/joyRadius}e.preventDefault()}
+function handleJoyEnd(e){for(const t of e.changedTouches){if(t.identifier===joyId){joyId=null;input.ax=0;input.ay=0;$('stick').style.transform='translate(0,0)'}}}
+
+function bindBtn(el,onDown,onUp){el.addEventListener('touchstart',e=>{e.preventDefault();el.classList.add('on');onDown()},{passive:false});el.addEventListener('touchend',e=>{e.preventDefault();el.classList.remove('on');onUp&&onUp()},{passive:false});el.addEventListener('touchcancel',e=>{el.classList.remove('on');onUp&&onUp()});el.addEventListener('mousedown',e=>{e.preventDefault();el.classList.add('on');onDown()});el.addEventListener('mouseup',e=>{e.preventDefault();el.classList.remove('on');onUp&&onUp()});el.addEventListener('mouseleave',e=>{el.classList.remove('on');onUp&&onUp()})}
+bindBtn($('btnFix'),()=>input.fix=true,()=>input.fix=false);
+bindBtn($('btnDash'),()=>input.dash=true,()=>input.dash=false);
+bindBtn($('btnSkill'),()=>input.skill=true,()=>input.skill=false);
+
+function getMachineCount(f){
+  if (f <= 2) return 2; if (f <= 7) return 3; if (f <= 11) return 4;
+  if (f <= 15) return 5; if (f <= 20) return 6; if (f <= 24) return 7;
+  if (f <= 28) return 8; if (f <= 32) return 9; if (f <= 36) return 10;
+  return Math.min(20, 11 + Math.floor((f - 37) / 4));
+}
+function getEnemyCount(f){
+  if (f <= 12) return 2; if (f <= 16) return 3; if (f <= 21) return 4;
+  if (f <= 25) return 5; return 6;
+}
+function getDarkChance(f){
+  if(f < 3) return 0;
+  let base = Math.min(30, 5 + Math.floor((f - 3) / 3));
+  return Math.max(0, base - save.darkChanceReduction);
+}
+
+function applyDecorations(stats){
+  for(const decId of save.equippedDecorations){
+    if(decId==='kr_red'){ stats.fix *= 1.075; stats.handy *= 0.95; }
+    else if(decId==='kr_blue'){ stats.dash *= 1.075; }
+    else if(decId==='kr_purple'){ stats.speed *= 1.10; }
+    else if(decId==='kr_black'){ stats.fix *= 1.05; stats.handy *= 1.10; }
+    else if(decId==='kr_crimson'){ stats.speed *= 0.9; stats.dash *= 0.9; }
+    else if(decId==='d_file'){ stats.fix *= 1.05; }
+    else if(decId==='d_goldhands'){ stats.handy *= 1.40; }
+    else if(decId==='kr_twilight'){ stats.speed *= 0.9; }
+    else if(decId==='d_speed_dash'){ stats.speed *= 1.05; stats.dash *= 1.05; }
+    else if(decId==='d_stamina'){ stats.stamina += 1; }
+  }
+  return stats;
+}
+
+function buildFloor(){
+  const s=state;
+  s.machines=[];s.monsters=[];s.walls=[];s.fixedCount=0;s.cards=[];s.bullets=[];s.floorItems=[];
+  s.noticedThisFloor = {};
+  s.totalMachines = getMachineCount(s.floor);
+  const t=14;
+  s.walls.push({x:0,y:0,w:W,h:t});s.walls.push({x:0,y:H-t,w:W,h:t});
+  s.walls.push({x:0,y:0,w:t,h:H});s.walls.push({x:W-t,y:0,w:t,h:H});
+  const blocks = Math.min(16, 4 + Math.floor(s.floor/2));
+  for(let i=0;i<blocks;i++){
+    const bw=50+Math.random()*110,bh=40+Math.random()*90;
+    const x=90+Math.random()*Math.max(1,W-180-bw),y=60+Math.random()*Math.max(1,H-120-bh);
+    if(x<170&&y>H/2-90&&y<H/2+90)continue;
+    if(x+bw>W-100&&y<140)continue;
+    s.walls.push({x,y,w:bw,h:bh});
+  }
+  const liftX=W-60,liftY=60;
+  if(isInsideWallRect(liftX,liftY,40,40)) return buildFloor();
+  s.elevator={x:liftX,y:liftY,w:40,h:40};
+  const start={x:60,y:H/2};
+
+  let att=0;
+  while(s.machines.length<s.totalMachines && att<800){
+    att++;
+    const m={x:100+Math.random()*Math.max(1,W-200),y:80+Math.random()*Math.max(1,H-160),r:14,fixed:false,progress:0,needed:1.0};
+    if(isInsideWall(m.x,m.y,26)||dist(m,start)<130||dist(m,s.elevator)<80)continue;
+    if(s.machines.some(o=>dist(o,m)<100))continue;
+    s.machines.push(m);
+  }
+  if(s.machines.length<s.totalMachines) return buildFloor();
+
+  if(save.equippedDecorations.includes('d_headstart') && s.machines.length > 0){
+      s.machines[0].progress = s.machines[0].needed * 0.4;
+  }
+
+  const enemyCount = getEnemyCount(s.floor);
+  const pool = KRUGERS.filter(k => k.minFloor<=s.floor && s.floor<=k.maxFloor && k.id !== 'avenger' &&
+    ((k.category==='normal') || (k.category==='event' && save.eventActive)));
+  let ma=0;
+  while(s.monsters.length<enemyCount && ma<300){
+    ma++;
+    const mx=130+Math.random()*Math.max(1,W-260),my=90+Math.random()*Math.max(1,H-180);
+    if(isInsideWall(mx,my,20)||dist({x:mx,y:my},start)<180)continue;
+    if(pool.length===0) continue;
+    const totalChance = pool.reduce((a,k)=>a+(k.chance||5),0);
+    let roll=Math.random()*totalChance, picked=pool[0];
+    for(const k of pool){roll-=(k.chance||5);if(roll<=0){picked=k;break}}
+    const mon = {x:mx,y:my,r:13,typeId:picked.id,dir:Math.random()*Math.PI*2,changeT:0,shotTimer:12,outOfVision:0,stunT:0,coalVisionT:0,sleeping:false,wakeTimer:0,outOfAura:0,darkTimer:55,slowCd:0,attackCd:0, teleportT: 0, teleportTarget: {x:0,y:0}};
+    if(picked.id==='black'){ mon.disguised = true; mon.revealed = false; mon.shotTimer = 3; }
+    if(picked.id==='mimic'){ mon.sleeping = true; }
+    if(picked.id==='pink'){ mon.shotTimer = 2; }
+    s.monsters.push(mon);
+  }
+
+  if (s.shopAngry && Math.random() < 0.05) {
+      let mx=130+Math.random()*Math.max(1,W-260),my=90+Math.random()*Math.max(1,H-180);
+      let tries=0;
+      while((isInsideWall(mx,my,20)||dist({x:mx,y:my},start)<180) && tries<50){ mx=130+Math.random()*Math.max(1,W-260); my=90+Math.random()*Math.max(1,H-180); tries++; }
+      s.monsters.push({x:mx,y:my,r:15,typeId:'avenger',dir:0,changeT:0,shotTimer:2,outOfVision:0,stunT:0,coalVisionT:0,sleeping:false,wakeTimer:0,outOfAura:0,darkTimer:55,slowCd:0,attackCd:0, teleportT: 0, teleportTarget: {x:0,y:0}});
+      s.shopAngry = false;
+  }
+
+  const cardCount = 1 + Math.floor(Math.random() * 10);
+  for(let i=0;i<cardCount;i++){
+    let cx, cy, tries=0;
+    do {
+      cx = 100 + Math.random()*Math.max(1, W-200);
+      cy = 80 + Math.random()*Math.max(1, H-160);
+      tries++;
+    } while(tries<20 && (isInsideWall(cx,cy,15) || dist({x:cx,y:cy},start)<80));
+    s.cards.push({x:cx,y:cy,r:10});
+  }
+
+  const itemSpawnCount = 2 + Math.floor(Math.random() * 3);
+  for(let i=0; i<itemSpawnCount; i++){
+      let ix, iy, tries=0;
+      do {
+          ix = 100 + Math.random()*Math.max(1, W-200);
+          iy = 80 + Math.random()*Math.max(1, H-160);
+          tries++;
+      } while(tries<20 && (isInsideWall(ix,iy,15) || dist({x:ix,y:iy},start)<80));
+      
+      let r = Math.random() * 100;
+      let item;
+      if(r < 50) item = ITEMS[0]; // Обычный 50%
+      else if(r < 75) item = ITEMS[1]; // Необычный 25%
+      else if(r < 90) item = ITEMS[2]; // Редкий 15%
+      else if(r < 98) item = ITEMS[3]; // Оч. редкий 8%
+      else item = ITEMS[4]; // Ультра 2%
+      
+      s.floorItems.push({x:ix, y:iy, r:12, item:item});
+  }
+
+  const darkChance = getDarkChance(s.floor);
+  s.isDark = Math.random()*100 < darkChance;
+  s.forceDarkT = 0;
+  if(s.isDark){ save.darkFloors++; writeSave(save); }
+
+  s.isIce = save.eventActive && (s.floor % 5 === 0);
+
+  if(s.floor > save.maxFloor){ save.maxFloor = s.floor; writeSave(save); }
+
+  s.player.x=start.x; s.player.y=start.y;
+  s.player.vx=0; s.player.vy=0;
+  if(s.isIce){
+    s.player.iceSpeed = s.player.baseSpeed / 2;
+    s.player.iceDirX = 0; s.player.iceDirY = 0;
+    s.player.iceStoppedT = 1;
+  }
+  
+  updateInventoryUI();
+
+  if (s.floor > 1) {
+      if (s.floor % 10 === 0) {
+          showCardsUI();
+      } else if (s.floor % 5 === 0) {
+          showShopUI();
+      }
+  }
+  return true;
+}
+
+function newGame(){
+  const c = selectedChar;
+  let stats = {lives:c.lives,speed:c.speed,dash:c.dash,stamina:c.stamina,fix:c.fix,handy:c.handy};
+  stats = applyDecorations(stats);
+  
+  state = {
+    floor: Math.max(1, START_FLOOR), lives: stats.lives, maxLives: stats.lives + (save.cardPicked['hp']||0),
+    fixedCount: 0, totalMachines: 0,
+    cardsVal: 0,
+    noticedThisFloor: {},
+    isDark: false, isIce: false, forceDarkT: 0,
+    inventory: [],
+    shopAngry: false,
+    buffs: [],
+    player: {
+      x:60, y:H/2, r:12, vx:0, vy:0,
+      baseSpeed: stats.speed, baseDash: stats.dash,
+      baseStaminaMax: stats.stamina + (save.cardPicked['stamina']||0), 
+      staminaMax: stats.stamina + (save.cardPicked['stamina']||0), 
+      stamina: stats.stamina + (save.cardPicked['stamina']||0),
+      fixSpeed: stats.fix, handy: stats.handy,
+      dashCd: 0, invuln: 0, char: c,
+      speedBuffT: 0, speedMult: 1,
+      dashBuffT: 0, dashMult: 1,
+      fixBuffT: 0, fixBuffMult: 1,
+      handyBuffT: 0, handyBuffMult: 1,
+      slowT: 0, slowMult: 1,
+      fixSlowT: 0, fixSlowMult: 1,
+      activeCd: 0, darknessOffT: 0,
+      iceSpeed: stats.speed, iceDirX:0, iceDirY:0, iceStoppedT: 1,
+      giftT: 0, turqStacks: 0, turqT: 0, diceTimer: 0
+    },
+    machines: [], monsters: [], cards: [], bullets: [], walls: [], elevator: null,
+    particles: [], trail: [], giftAuraActive: false, snowflakes: [], floorItems: [],
+    message: '', messageT: 0, shake: 0, finished: false
+  };
+  
+  if(save.equippedDecorations.includes('d_capital')){ state.cardsVal += 30; }
+  
+  if(save.eventActive){
+    for(let i=0; i<80; i++){
+      state.snowflakes.push({ x: Math.random()*W, y: Math.random()*H, size: 1 + Math.random()*2.5, speed: 20 + Math.random()*50, drift: (Math.random()-0.5)*30 });
+    }
+  }
+
+  const activeIds = ['lucky','magnet','lighter','pusher','bait','stamina_master','svetlyachok','snow_dasher','snow_healer','radar','gift'];
+  $('btnSkill').classList.toggle('visible', !!c.active || activeIds.includes(c.id));
+  $('btnSkill').classList.remove('cd');
+  buildFloor();
+  updateHUD();
+}
+
+function nextFloor(){
+  state.floor++;
+  save.totalFloors++;
+  state.player.stamina = state.player.staminaMax;
+  state.player.vx = 0; state.player.vy = 0; state.player.invuln = 0;
+  state.player.speedBuffT = 0; state.player.speedMult = 1;
+  state.player.dashBuffT = 0; state.player.dashMult = 1;
+  state.player.fixBuffT = 0; state.player.fixBuffMult = 1;
+  state.player.handyBuffT = 0; state.player.handyBuffMult = 1;
+  state.player.slowT = 0; state.player.slowMult = 1;
+  state.player.fixSlowT = 0; state.player.fixSlowMult = 1;
+  state.player.darknessOffT = 0; state.player.giftT = 0;
+  state.player.turqStacks = 0; state.player.turqT = 0;
+  state.player.diceTimer = 0;
+  state.trail = [];
+  save.coins += 10;
+  if(save.eventActive){
+    let evGain = 10;
+    if(save.equippedDecorations.includes('kr_snowball')) evGain *= 2;
+    save.eventCurrency += evGain;
+  }
+  state.message = `⬇ ЭТАЖ ${state.floor} (+10 💰${save.eventActive?' +'+(save.equippedDecorations.includes('kr_snowball')?20:10)+' 🎄':''})`; state.messageT = 2;
+  buildFloor();
+  updateHUD();
+  writeSave(save);
+}
+
+function updateHUD(){
+  if(!state) return;
+  let fl = 'ЭТАЖ '+state.floor;
+  if(state.isDark || state.forceDarkT > 0) fl += ' 🌑';
+  if(state.isIce) fl += ' ❄️';
+  
+  let bonusStam = 0;
+  if(save.equippedDecorations.includes('kr_green')){
+    bonusStam = state.lives === 1 ? 0 : state.lives === 2 ? 1 : state.lives === 3 ? 2 : 0;
+  }
+  state.player.staminaMax = state.player.baseStaminaMax + bonusStam;
+  if(state.player.stamina > state.player.staminaMax) state.player.stamina = state.player.staminaMax;
+
+  $('hudFloor').textContent=fl;
+  $('hudHP').textContent='♥'+Math.max(0,state.lives)+'/'+state.maxLives;
+  $('hudStamina').textContent=`⚡${state.player.stamina}/${state.player.staminaMax}`;
+  $('hudMach').textContent=`⚙${state.fixedCount}/${state.totalMachines}`;
+  $('hudCards').textContent='🃏'+state.cardsVal;
+  $('btnDash').classList.toggle('disabled', state.player.stamina<=0);
+  $('btnSkill').classList.toggle('cd', state.player.activeCd>0);
+}
+
+function gameOver(){
+  state.finished=true; running=false;
+  if(state.floor > save.maxFloor){ save.maxFloor = state.floor; }
+  writeSave(save);
+  $('ovTitle').textContent='💀 ИГРА ОКОНЧЕНА';
+  $('ovText').textContent=`Этаж ${state.floor}. Карт: ${state.cardsVal}. Монет: ${save.coins}. Макс. этаж: ${save.maxFloor}`;
+  showScreen('endScreen');
+}
+
+function tryDash(){
+  const p = state.player;
+  let ax=input.ax, ay=input.ay;
+  if(keys['a']||keys['arrowleft'])ax-=1;
+  if(keys['d']||keys['arrowright'])ax+=1;
+  if(keys['w']||keys['arrowup'])ay-=1;
+  if(keys['s']||keys['arrowdown'])ay+=1;
+  let dirX=ax, dirY=ay;
+  if(dirX===0 && dirY===0){dirX=1;dirY=0}
+  const len = Math.hypot(dirX, dirY);
+  if(len>0){dirX/=len; dirY/=len}
+  let dashBase = p.baseDash;
+  if(save.equippedDecorations.includes('kr_mimic') && state.floor % 2 === 0) dashBase *= 1.1;
+  if(selectedChar.id==='gift' && state.giftAuraActive) dashBase *= 1.5;
+  const distPx = dashBase * 40 * (p.dashBuffT>0 ? p.dashMult : 1);
+  const steps=12;
+  const startX = p.x, startY = p.y;
+  let lastX=p.x, lastY=p.y;
+  for(let i=1;i<=steps;i++){
+    const nx=p.x+dirX*distPx*(i/steps), ny=p.y+dirY*distPx*(i/steps);
+    let blocked=false;
+    for(const w of state.walls) if(circleRectCollide(nx,ny,p.r,w)){blocked=true;break}
+    if(blocked) break;
+    
+    for(const mon of state.monsters){
+      if(mon.typeId==='mimic' && mon.sleeping && Math.hypot(mon.x-nx, mon.y-ny) < 160){
+         mon.sleeping = false; mon.wakeTimer = 1.0; mon.outOfAura = 0; mon.attackCd = 0;
+         state.message = '👹 МИМИК ПРОСНУЛСЯ!'; state.messageT = 1.5;
+      }
+    }
+    
+    lastX=nx; lastY=ny;
+  }
+  const totalLen = Math.hypot(lastX-startX, lastY-startY);
+  const segCount = Math.max(2, Math.floor(totalLen/10));
+  for(let i=0;i<=segCount;i++){
+    const t=i/segCount;
+    state.trail.push({x: startX + (lastX-startX)*t, y: startY + (lastY-startY)*t, size: p.r*2, life: 0.5, maxLife: 0.5});
+  }
+  p.x=lastX; p.y=lastY;
+  p.invuln=0.25; p.dashCd=1.2; p.stamina--; updateHUD();
+  for(let i=0;i<12;i++){
+    state.particles.push({x:lastX,y:lastY,vx:(Math.random()-0.5)*40,vy:(Math.random()-0.5)*40,life:0.35,color:'#c47dff'});
+  }
+}
+
+function activateSkill(){
+  const c = selectedChar, p = state.player, s = state;
+  if(p.activeCd > 0) return;
+  if(p.giftT > 0) return;
+  
+  let cdReduction = (save.cardPicked['cd'] || 0) * 5;
+
+  if(c.id === 'lucky'){
+    const stats = ['speed','dash','fix','handy'];
+    const r = stats[Math.floor(Math.random()*4)];
+    if(r==='speed'){ p.speedBuffT = 10; p.speedMult = 1.15; s.message = '🎲 +15% СКОРОСТЬ'; }
+    else if(r==='dash'){ p.dashBuffT = 10; p.dashMult = 1.15; s.message = '🎲 +15% РЫВОК'; }
+    else if(r==='fix'){ p.fixBuffT = 10; p.fixBuffMult = 1.15; s.message = '🎲 +15% ПОЧИНКА'; }
+    else { p.handyBuffT = 10; p.handyBuffMult = 1.15; s.message = '🎲 +15% РУКАСТЫЙ'; }
+    s.messageT = 2; p.activeCd = Math.max(0, 25 - cdReduction);
+  } else if(c.id === 'magnet'){
+    let nearest = null, minD = 400;
+    for(const m of s.machines) if(!m.fixed){ const d = dist(p, m); if(d < minD){ minD = d; nearest = m; } }
+    if(nearest){
+      p.x = nearest.x; p.y = nearest.y;
+      s.message = '🧲 МАШИНА РЯДОМ — ПРИТЯНУЛСЯ!'; s.messageT = 2; p.activeCd = Math.max(0, 25 - cdReduction);
+    } else {
+      const el = s.elevator;
+      const elX = el.x + el.w/2, elY = el.y + el.h/2;
+      const dEl = Math.hypot(elX - p.x, elY - p.y);
+      if(dEl < 400){
+        p.x = elX; p.y = elY;
+        s.message = '🧲 ЛИФТ РЯДОМ — ПРИТЯНУЛСЯ!'; s.messageT = 2; p.activeCd = Math.max(0, 25 - cdReduction);
+      } else {
+        s.message = '🧲 РЯДОМ ПУСТО'; s.messageT = 1.5;
+      }
+    }
+  } else if(c.id === 'lighter'){
+    p.darknessOffT = 8; s.message = '🔦 ТЕМНОТА УБРАНА НА 8С'; s.messageT = 2; p.activeCd = Math.max(0, 45 - cdReduction);
+  } else if(c.id === 'svetlyachok'){
+    p.darknessOffT = 5; s.message = '🏮 ПОДСВЕТКА 5С'; s.messageT = 2; p.activeCd = Math.max(0, 50 - cdReduction);
+  } else if(c.id === 'pusher'){
+    let count = 0;
+    for(const m of s.monsters){
+      if(dist(p, m) < 160){
+        const dx = (m.x - p.x) / (dist(p, m) || 1);
+        const dy = (m.y - p.y) / (dist(p, m) || 1);
+        safeTeleport(m, m.x + dx*200, m.y + dy*200);
+        count++;
+      }
+    }
+    s.message = count>0?`👊 ОТТОЛКНУЛ ${count}`:'👊 РЯДОМ НИКОГО'; s.messageT = 2; p.activeCd = Math.max(0, 30 - cdReduction);
+  } else if(c.id === 'bait'){
+    let count = 0;
+    for(const m of s.monsters){
+      if(m.typeId === 'black') continue;
+      safeTeleport(m, p.x + (Math.random()-0.5)*80, p.y + (Math.random()-0.5)*80);
+      m.stunT = 5; count++;
+    }
+    p.invuln = Math.max(p.invuln, 0.5);
+    s.message = count>0?`🎯 ПРИТЯНУЛ ${count}`:'🎯 НЕКОГО'; s.messageT = 2; p.activeCd = Math.max(0, 40 - cdReduction);
+  } else if(c.id === 'stamina_master'){
+    p.stamina = p.staminaMax; s.message = '🌀 СТАМИНА ВОССТАНОВЛЕНА'; s.messageT = 2; p.activeCd = Math.max(0, 75 - cdReduction);
+  } else if(c.id === 'snow_dasher'){
+    p.speedBuffT = 0.4; p.speedMult = 2; p.invuln = 0.4;
+    s.message = '❄️ РЫВОК ×2 + НЕУЯЗ 0.4С'; s.messageT = 2; p.activeCd = Math.max(0, 23 - cdReduction);
+  } else if(c.id === 'snow_healer'){
+    if(s.cardsVal < 50){ s.message = '⛄ НУЖНО 50 КАРТ'; s.messageT = 1.5; return; }
+    if(s.lives >= s.maxLives){ s.message = '⛄ HP ПОЛНОЕ'; s.messageT = 1.5; return; }
+    s.cardsVal -= 50; s.lives = Math.min(s.maxLives, s.lives + 1);
+    s.message = '⛄ +1 HP'; s.messageT = 2; p.activeCd = Math.max(0, 200 - cdReduction);
+  } else if(c.id === 'radar'){
+    p.speedBuffT = 0.75; p.speedMult = 2; p.invuln = 0.75;
+    s.message = '📡 РЫВОК ×2 + НЕУЯЗ 0.75С'; s.messageT = 2; p.activeCd = Math.max(0, 30 - cdReduction);
+  } else if(c.id === 'gift'){
+    p.giftT = 8; s.message = '🎁 ПОДАРОК 8С'; s.messageT = 2; p.activeCd = Math.max(0, 90 - cdReduction);
+  }
+  if(save.equippedDecorations.includes('kr_seer')){
+    if(p.stamina < p.staminaMax) p.stamina++;
+  }
+  updateHUD();
+}
+
+function shootBullet(fromX, fromY, toX, toY, speed, type='normal'){
+  const dx = toX - fromX, dy = toY - fromY;
+  const dl = Math.hypot(dx, dy) || 1;
+  state.bullets.push({ x: fromX, y: fromY, vx: dx/dl*speed, vy: dy/dl*speed, r: 5, life: 3, type });
+}
+
+function applyTalisman(){
+  const s = state;
+  if(!save.equippedDecorations.includes('d_noob')) return;
+  for(const m of s.monsters) m.stunT = Math.max(m.stunT || 0, 3);
+}
+
+function updateInventoryUI() {
+    for (let i=0; i<3; i++) {
+        let el = $('inv'+i);
+        if (state && state.inventory && state.inventory[i]) {
+            el.textContent = state.inventory[i].icon;
+            el.classList.add('has-item');
+        } else {
+            el.textContent = '';
+            el.classList.remove('has-item');
+        }
+    }
+}
+
+function useItem(idx) {
+    if (!state || !state.inventory[idx]) return;
+    let item = state.inventory[idx];
+    
+    if (item.id === 'bandage') {
+        if (state.lives >= state.maxLives) { state.message = '⚠️ HP ПОЛНОЕ'; state.messageT = 1.5; return; }
+        state.lives++;
+        state.message = '🩹 +1 HP'; state.messageT = 2;
+    } else if (item.id === 'pill') {
+        if (state.lives >= state.maxLives) { state.message = '⚠️ HP ПОЛНОЕ'; state.messageT = 1.5; return; }
+        state.lives = state.maxLives;
+        state.message = '💊 HP ВОССТАНОВЛЕНО'; state.messageT = 2;
+    } else if (item.id === 'straw') {
+        state.buffs.push({ stat: 'speedMult', val: 0.05, t: 10 });
+        state.message = '🍓 +5% СКОРОСТЬ'; state.messageT = 2;
+    } else if (item.id === 'cherry') {
+        const stats = ['speed', 'dash', 'fix', 'handy'];
+        const stat = stats[Math.floor(Math.random()*4)];
+        if (stat === 'speed') { state.buffs.push({ stat: 'speedMult', val: 0.1, t: 10 }); state.message = '🍒 +10% СКОРОСТЬ'; }
+        else if (stat === 'dash') { state.player.dashBuffT = 10; state.player.dashMult = 1.1; state.message = '🍒 +10% РЫВОК'; }
+        else if (stat === 'fix') { state.player.fixBuffT = 10; state.player.fixBuffMult = 1.1; state.message = '🍒 +10% ПОЧИНКА'; }
+        else { state.player.handyBuffT = 10; state.player.handyBuffMult = 1.1; state.message = '🍒 +10% РУКАСТЫЙ'; }
+        state.messageT = 2;
+    } else if (item.id === 'apple') {
+        const stats = ['speed', 'dash', 'fix', 'handy'];
+        const stat = stats[Math.floor(Math.random()*4)];
+        if (stat === 'speed') { state.buffs.push({ stat: 'speedMult', val: 0.5, t: 20 }); state.message = '🍎 +50% СКОРОСТЬ'; }
+        else if (stat === 'dash') { state.player.dashBuffT = 20; state.player.dashMult = 1.5; state.message = '🍎 +50% РЫВОК'; }
+        else if (stat === 'fix') { state.player.fixBuffT = 20; state.player.fixBuffMult = 1.5; state.message = '🍎 +50% ПОЧИНКА'; }
+        else { state.player.handyBuffT = 20; state.player.handyBuffMult = 1.5; state.message = '🍎 +50% РУКАСТЫЙ'; }
+        state.messageT = 2;
+    }
+    
+    state.inventory.splice(idx, 1);
+    updateInventoryUI();
+    updateHUD();
+}
+
+$('inv0').onclick=()=>useItem(0); 
+$('inv1').onclick=()=>useItem(1); 
+$('inv2').onclick=()=>useItem(2);
+
+function update(dt){
+  const s=state; if(!s || s.finished) return;
+  const p=s.player, c=p.char;
+
+  if(save.eventActive && s.snowflakes){
+    for(const f of s.snowflakes){
+      f.y += f.speed * dt; f.x += f.drift * dt;
+      if(f.y > H+10){ f.y = -10; f.x = Math.random()*W; }
+      if(f.x < -10) f.x = W+10;
+      if(f.x > W+10) f.x = -10;
+    }
+  }
+
+  let ax=input.ax, ay=input.ay;
+  if(keys['a']||keys['arrowleft'])ax-=1;
+  if(keys['d']||keys['arrowright'])ax+=1;
+  if(keys['w']||keys['arrowup'])ay-=1;
+  if(keys['s']||keys['arrowdown'])ay+=1;
+  const len=Math.hypot(ax,ay);
+  if(len>1){ax/=len; ay/=len}
+
+  // Обработка бафов (клубника и т.д.)
+  if(s.buffs && s.buffs.length > 0){
+    for(let i = s.buffs.length - 1; i >= 0; i--){
+        s.buffs[i].t -= dt;
+        if(s.buffs[i].t <= 0) s.buffs.splice(i, 1);
+    }
+  }
+
+  // Кубик
+  if(save.equippedDecorations.includes('d_dice')){
+      p.diceTimer = (p.diceTimer || 0) + dt;
+      if(p.diceTimer >= 10){
+          p.diceTimer = 0;
+          if(Math.random() < 0.15){
+              if(p.stamina < p.staminaMax) p.stamina++;
+              s.message = '🎲 УДАЧА! +1 СТАМИНА'; s.messageT = 1.5;
+              updateHUD();
+          }
+      }
+  }
+
+  if(p.speedBuffT>0){ p.speedBuffT-=dt; if(p.speedBuffT<=0){ p.speedMult=1; } }
+  if(p.dashBuffT>0){ p.dashBuffT-=dt; if(p.dashBuffT<=0){ p.dashMult=1; } }
+  if(p.fixBuffT>0){ p.fixBuffT-=dt; if(p.fixBuffT<=0){ p.fixBuffMult=1; } }
+  if(p.handyBuffT>0){ p.handyBuffT-=dt; if(p.handyBuffT<=0){ p.handyBuffMult=1; } }
+  if(p.slowT>0){ p.slowT-=dt; if(p.slowT<=0){ p.slowMult=1; } }
+  if(p.fixSlowT>0){ p.fixSlowT-=dt; if(p.fixSlowT<=0){ p.fixSlowMult=1; } }
+  if(p.activeCd>0) p.activeCd-=dt;
+  if(p.darknessOffT>0) p.darknessOffT-=dt;
+  if(s.forceDarkT > 0) s.forceDarkT -= dt;
+  if(p.giftT>0){ p.giftT-=dt; if(p.giftT<=0){ s.message='🎁 ТЫ СНОВА ИГРОК'; s.messageT=1.5; } }
+  if(p.turqT > 0) { p.turqT -= dt; if(p.turqT <= 0) p.turqStacks = 0; }
+  if(p.slowCd > 0) p.slowCd -= dt;
+
+  let speedStars = p.baseSpeed;
+  let fixStars = p.fixSpeed;
+  if(c.id === 'twin'){
+    if(s.floor % 2 !== 0){ speedStars = 5; fixStars = 3; }
+    else { speedStars = 3; fixStars = 5; }
+  }
+  if(save.equippedDecorations.includes('kr_mimic') && s.floor % 2 === 0) speedStars *= 1.1;
+  if(p.turqStacks > 0) speedStars *= (1 + p.turqStacks * 0.25);
+
+  if(p.giftT > 0){
+    p.vx=0; p.vy=0;
+  } else if(s.isIce){
+    const moving = (Math.abs(ax)>0.1 || Math.abs(ay)>0.1);
+    const base = speedStars;
+    const minSpeed = base / 2;
+    const maxSpeed = base * 1.5;
+    const accel = base / 2;
+    if(moving){
+      p.iceStoppedT = 0; p.iceDirX = ax; p.iceDirY = ay;
+      p.iceSpeed = Math.min(maxSpeed, p.iceSpeed + accel*dt);
+    } else {
+      p.iceStoppedT += dt;
+      if(p.iceStoppedT >= 1) p.iceSpeed = Math.max(minSpeed, p.iceSpeed - accel*dt);
+    }
+    if(p.iceDirX !== 0 || p.iceDirY !== 0){
+      const mvx = p.iceDirX * p.iceSpeed * 40 * dt;
+      const mvy = p.iceDirY * p.iceSpeed * 40 * dt;
+      tryMove(p, p.x + mvx, p.y + mvy);
+    }
+  } else {
+    let itemSpeedBonus = 0;
+    if(s.buffs){
+        for(let b of s.buffs){
+            if(b.stat === 'speedMult') itemSpeedBonus += b.val;
+        }
+    }
+    const speedMul = (p.speedBuffT>0?p.speedMult:1) * (p.slowT>0?p.slowMult:1) * (1 + itemSpeedBonus);
+    const spd = speedStars * 40 * speedMul;
+    tryMove(p, p.x+ax*spd*dt, p.y+ay*spd*dt);
+  }
+
+  if(p.dashCd>0) p.dashCd-=dt;
+  if(p.invuln>0) p.invuln-=dt;
+
+  const wantDash = input.dash || keys[' '];
+  if(wantDash && p.dashCd<=0 && p.stamina>0 && p.giftT<=0){
+    tryDash();
+    input.dash=false;
+  }
+
+  if(input.skill && p.activeCd<=0){
+    activateSkill();
+    input.skill=false;
+  }
+
+  const wantFix = (input.fix || keys['e']) && p.giftT<=0;
+
+  for(let i=s.cards.length-1;i>=0;i--){
+    const card = s.cards[i];
+    if(dist(card, p) < p.r + card.r + 6){
+      s.cardsVal++;
+      s.message = '🃏 +1 карта'; s.messageT = 0.6;
+      s.cards.splice(i,1);
+      updateHUD();
+      if(save.equippedDecorations.includes('kr_turquoise')){
+        p.turqStacks++; p.turqT += 4;
+      }
+      for(const mon of s.monsters){
+        if(mon.typeId==='coal') mon.coalVisionT = 3;
+      }
+    }
+  }
+
+  if (s.floorItems) {
+      for(let i=s.floorItems.length-1;i>=0;i--){
+        const fi = s.floorItems[i];
+        if(dist(fi, p) < p.r + fi.r + 8){
+            if (s.inventory.length < 3) {
+                s.inventory.push(fi.item);
+                s.message = `ДАЁТ: ${fi.item.desc}`;
+                s.messageT = 2.5;
+                s.floorItems.splice(i,1);
+                updateInventoryUI();
+                save.totalItemsPicked = (save.totalItemsPicked || 0) + 1;
+                writeSave(save);
+            } else {
+                s.message = `🎒 ИНВЕНТАРЬ ПОЛОН`; s.messageT = 1.5;
+            }
+        }
+      }
+  }
+
+  let auraRadius = save.equippedDecorations.includes('kr_coal') ? 160 : 120;
+  s.giftAuraActive = false;
+  if(c.id === 'gift'){
+    for(const m of s.monsters){
+      if(dist(p, m) < auraRadius){ s.giftAuraActive = true; break; }
+    }
+  }
+
+  let near=null;
+  for(const m of s.machines) if(!m.fixed && dist(p,m)<p.r+m.r+14){near=m; break}
+  if(near && wantFix){
+    let fm=1;
+    if(c.id==='cube') fm = 1 + Math.min(0.48, s.monsters.length * 0.08);
+    
+    let baseTime = 1.0 / (fixStars * 0.2);
+    if (save.repairBonus) baseTime -= 0.5;
+    let repairSpeed = 1.0 / Math.max(0.1, baseTime);
+
+    const handyChance = p.handy * 0.01;
+    if(!near.handyRolled){
+      near.handyRolled = true;
+      if(Math.random() < handyChance){
+        near.handyDouble = true;
+        s.message = '🛠 РУКАСТЫЙ: ×2!'; s.messageT = 1.5;
+      }
+    }
+    const handyMult = near.handyDouble ? 2 : 1;
+    const fixMul = (p.fixBuffT>0?p.fixBuffMult:1) * (p.fixSlowT>0?p.fixSlowMult:1);
+    
+    near.progress += dt * repairSpeed * fm * handyMult * fixMul;
+    if(near.progress>=near.needed){
+      near.fixed=true; s.fixedCount++;
+      save.totalMachinesFixed++;
+      save.coins+=5;
+      
+      // ФИНИШЕР
+      if(s.fixedCount >= s.totalMachines && save.equippedDecorations.includes('d_floor50')){
+          p.speedBuffT = 10; p.speedMult = 1.25;
+          p.dashBuffT = 10; p.dashMult = 1.25;
+          s.message = '🏁 ФИНИШЕР: +25% СКОРОСТЬ/РЫВОК'; s.messageT = 2;
+      }
+
+      // МСТИТЕЛЬ: Запоминает место починки
+      for (let mon of s.monsters) {
+          if (mon.typeId === 'avenger') {
+              mon.teleportTarget = { x: near.x, y: near.y };
+              mon.teleportT = 5;
+              s.message = '💀 МСТИТЕЛЬ ЗАСЁК ПОЧИНКУ!'; s.messageT = 1.5;
+          }
+      }
+
+      if(save.equippedDecorations.includes('kr_pink') && Math.random() < 0.4) {
+        if(p.stamina < p.staminaMax) p.stamina++;
+      }
+      if(save.eventActive){
+        let evGain = 5;
+        if(save.equippedDecorations.includes('kr_snowball')) evGain *= 2;
+        save.eventCurrency+=evGain;
+      }
+      s.message='✅ Машина! +5💰'+(save.eventActive?' +'+(save.equippedDecorations.includes('kr_snowball')?10:5)+' 🎄':''); s.messageT=1.5;
+      writeSave(save);
+    }
+  }
+
+  for(const mon of s.monsters){
+    const kr=KRUGERS.find(k=>k.id===mon.typeId);
+
+    if(kr.id === 'black'){
+      const d = dist(mon, p);
+      const visionPx = kr.vision * 40;
+      if(mon.disguised){
+        if(d < visionPx){
+          mon.disguised = false; mon.revealed = true;
+          mon.shotTimer = 3; mon.outOfVision = 0;
+          p.slowT = Math.max(p.slowT, 5); p.slowMult = 0.7;
+          p.fixSlowT = Math.max(p.fixSlowT, 10); p.fixSlowMult = 0.7;
+          s.message = '⬛ ЧЁРНЫЙ ВЫЛЕЗ! ЗАМЕДЛЕНИЕ!'; s.messageT = 2;
+          if(!s.noticedThisFloor['black']){
+            s.noticedThisFloor['black'] = true;
+            const mult = (selectedChar.id === 'scientist') ? 2 : 1;
+            const before = save.krugerPct['black'] || 0;
+            if(before < 100){
+              const gain = 5 * mult;
+              save.krugerPct['black'] = Math.min(100, before + gain);
+              s.message = `⬛ +${gain}% ЧЁРНЫЙ`; s.messageT = 2;
+              if(save.krugerPct['black'] >= 100 && !save.decorations.includes('kr_black')){
+                save.decorations.push('kr_black');
+                s.message = '🎁 УКРАШЕНИЕ: ЧЁРНАЯ МЕТКА!'; s.messageT = 3;
+              }
+              writeSave(save);
+            }
+          }
+        }
+      } else {
+        const sees = d < visionPx;
+        if(sees){ mon.outOfVision = 0; }
+        else {
+          mon.outOfVision += dt;
+          if(mon.outOfVision >= 10){ mon.disguised = true; mon.revealed = false; mon.outOfVision = 0; }
+        }
+        mon.shotTimer -= dt;
+        if(mon.shotTimer <= 0){ mon.shotTimer = 3; shootBullet(mon.x, mon.y, p.x, p.y, 220); }
+      }
+      continue;
+    }
+
+    if(mon.stunT > 0){ mon.stunT -= dt; continue; }
+
+    if(kr.id === 'mimic'){
+      const d = dist(mon, p);
+      
+      if(!mon.sleeping && !s.noticedThisFloor[mon.typeId]){
+          s.noticedThisFloor[mon.typeId] = true;
+          const mult = (selectedChar.id === 'scientist') ? 2 : 1;
+          const before = save.krugerPct['mimic'] || 0;
+          if(before < 100){
+            const gain = 5 * mult;
+            save.krugerPct['mimic'] = Math.min(100, before + gain);
+            s.message = `👁 МИМИК ЗАМЕТИЛ! +${gain}%`; s.messageT = 2;
+            const dec = KRUGER_DECORATIONS['mimic'];
+            if(save.krugerPct['mimic'] >= 100 && dec && !save.decorations.includes(dec.id)){
+              save.decorations.push(dec.id);
+              s.message = `🎁 УКРАШЕНИЕ: ${dec.name}!`; s.messageT = 3;
+            }
+            writeSave(save);
+          }
+      }
+
+      if(mon.sleeping){
+        continue;
+      } else {
+        if(d < 160) mon.outOfAura = 0;
+        else {
+          mon.outOfAura += dt;
+          if(mon.outOfAura >= 15){ 
+            mon.sleeping = true; 
+            s.message = '👹 МИМИК ЗАСНУЛ'; s.messageT = 1.5;
+            continue; 
+          }
+        }
+        
+        if(mon.attackCd > 0) mon.attackCd -= dt;
+        
+        if(mon.wakeTimer > 0){
+          mon.wakeTimer -= dt;
+        } else {
+          if (d < 160 && mon.attackCd <= 0) {
+            s.lives -= 1; p.invuln=1.2; s.shake=12;
+            applyTalisman();
+            if(navigator.vibrate) navigator.vibrate(80);
+            s.message = '👹 МИМИК УДАРИЛ!'; s.messageT = 1.5;
+            updateHUD();
+            if(s.lives<=0){ gameOver(); return; }
+            mon.attackCd = 2.2;
+          }
+        }
+      }
+      continue;
+    }
+
+    // МСТИТЕЛЬ (телепорт к починенной машине)
+    if (kr.id === 'avenger') {
+        if (mon.teleportT > 0) {
+            mon.teleportT -= dt;
+            if (mon.teleportT <= 0) {
+                mon.x = mon.teleportTarget.x;
+                mon.y = mon.teleportTarget.y;
+                s.message = '💀 МСТИТЕЛЬ ТЕЛЕПОРТИРОВАЛСЯ!'; s.messageT = 1.5;
+            }
+        }
+    }
+
+    const d=dist(mon,p);
+    let visionPx = kr.vision*40;
+    let monSpeed = kr.speed;
+    if(kr.id==='twilight' && (s.isDark || s.forceDarkT > 0)){ monSpeed = 4.6; }
+    if(kr.id==='coal' && mon.coalVisionT>0){ visionPx = 999999; mon.coalVisionT-=dt; }
+    if(c.id === 'plain') visionPx *= 3;
+    if(c.id === 'lighter') visionPx *= 2;
+    if(c.id === 'stamina_master') visionPx *= 0.5;
+    if(save.equippedDecorations.includes('kr_twilight')) visionPx *= 1.1;
+    if(p.giftT > 0) visionPx = 0;
+
+    const sees = d < visionPx;
+
+    if(kr.id === 'slower'){
+      if(sees && p.slowCd <= 0){
+        p.slowT = 5; p.slowMult = 0.8; p.slowCd = 45;
+        s.message = '🐌 ЗАМЕДЛЕНИЕ -20%'; s.messageT = 1.5;
+      }
+      mon.darkTimer -= dt;
+      if(mon.darkTimer <= 0){
+        mon.darkTimer = 55;
+        s.forceDarkT = 15;
+        s.message = '🐌 СВЕТ ВЫКЛЮЧЕН НА 15С'; s.messageT = 2;
+      }
+    }
+
+    if(sees && !s.noticedThisFloor[mon.typeId]){
+      s.noticedThisFloor[mon.typeId] = true;
+      const mult = (selectedChar.id === 'scientist') ? 2 : 1;
+      const before = save.krugerPct[mon.typeId] || 0;
+      if(before < 100){
+        const gain = 5 * mult;
+        save.krugerPct[mon.typeId] = Math.min(100, before + gain);
+        s.message = `👁 ${kr.name} ЗАМЕТИЛ! +${gain}%`; s.messageT = 2;
+        const dec = KRUGER_DECORATIONS[mon.typeId];
+        if(save.krugerPct[mon.typeId] >= 100 && dec && !save.decorations.includes(dec.id)){
+          save.decorations.push(dec.id);
+          s.message = `🎁 УКРАШЕНИЕ: ${dec.name}!`; s.messageT = 3;
+        }
+        writeSave(save);
+      }
+    }
+
+    let tx=mon.x, ty=mon.y;
+    if(sees && d>0){
+      const dx=(p.x-mon.x)/d, dy=(p.y-mon.y)/d;
+      tx += dx*monSpeed*40*dt; ty += dy*monSpeed*40*dt;
+    } else {
+      mon.changeT -= dt;
+      if(mon.changeT<=0){mon.dir=Math.random()*Math.PI*2; mon.changeT=1+Math.random()*2}
+      tx += Math.cos(mon.dir)*monSpeed*20*dt;
+      ty += Math.sin(mon.dir)*monSpeed*20*dt;
+    }
+    tryMove(mon, tx, ty);
+
+    if(kr.ability === 'shoot'){
+      mon.shotTimer -= dt;
+      if(mon.shotTimer <= 0 && sees){ mon.shotTimer = 12; shootBullet(mon.x, mon.y, p.x, p.y, 260); }
+    } else if(kr.ability === 'shoot_10'){
+      mon.shotTimer -= dt;
+      if(mon.shotTimer <= 0 && sees){ mon.shotTimer = 10; shootBullet(mon.x, mon.y, p.x, p.y, 260); }
+    } else if(kr.ability === 'drain_stamina'){
+      mon.shotTimer -= dt;
+      if(mon.shotTimer <= 0 && sees){ mon.shotTimer = 2; shootBullet(mon.x, mon.y, p.x, p.y, 350, 'drain'); }
+    }
+
+    if(p.giftT > 0) continue;
+
+    if(d<mon.r+p.r && p.invuln<=0){
+      s.lives -= (kr.damage || 1);
+      p.invuln=1.2; s.shake=12;
+      if(c.id === 'rect'){ p.speedBuffT = 3; p.speedMult = 1.5; s.message='🔲 УСКОРЕНИЕ +50%!'; s.messageT=1.2; }
+      applyTalisman();
+      if(navigator.vibrate) navigator.vibrate(80);
+      for(let i=0;i<10;i++) s.particles.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*160,vy:(Math.random()-0.5)*160,life:0.5,color:'#ff6b6b'});
+      updateHUD();
+      if(s.lives<=0){ gameOver(); return; }
+    }
+  }
+
+  for(let i=s.bullets.length-1;i>=0;i--){
+    const b=s.bullets[i];
+    b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
+    if(p.giftT <= 0 && dist(b,p) < p.r + b.r && p.invuln<=0){
+      if(b.type === 'drain') { p.stamina = 0; s.message = '🌸 ПУЛЯ ЗАБРАЛА СТАМИНУ!'; s.messageT = 1.5; updateHUD(); }
+      else { s.lives -= 1; }
+      p.invuln=1.2; s.shake=12;
+      applyTalisman();
+      if(navigator.vibrate) navigator.vibrate(80);
+      s.bullets.splice(i,1); updateHUD();
+      if(s.lives<=0){ gameOver(); return; }
+      continue;
+    }
+    if(b.life<=0 || b.x<0 || b.x>W || b.y<0 || b.y>H){ s.bullets.splice(i,1); }
+  }
+
+  const el=s.elevator;
+  const nearLift = Math.abs(p.x-(el.x+el.w/2))<34 && Math.abs(p.y-(el.y+el.h/2))<34;
+  if(nearLift){
+    if(s.fixedCount>=s.totalMachines){
+      s.message='⬇ Лифт: держи ЧИНИТЬ'; s.messageT=0.4;
+      if(wantFix) nextFloor();
+    } else {
+      s.message=`Лифт закрыт: ${s.fixedCount}/${s.totalMachines}`; s.messageT=0.4;
+    }
+  }
+
+  for(let i=s.trail.length-1;i>=0;i--){ s.trail[i].life -= dt; if(s.trail[i].life<=0) s.trail.splice(i,1); }
+  for(let i=s.particles.length-1;i>=0;i--){ const pt=s.particles[i]; pt.x+=pt.vx*dt; pt.y+=pt.vy*dt; pt.life-=dt; if(pt.life<=0) s.particles.splice(i,1); }
+  if(s.shake>0) s.shake -= dt*40;
+  if(s.messageT>0) s.messageT -= dt;
+}
+
+function getVisionRadius(){
+  const c = selectedChar;
+  let r = (c.id === 'lighter') ? 400 : 200;
+  if(save.equippedDecorations.includes('kr_neon')) r *= 1.25;
+  return r;
+}
+
+function draw(){
+  const s=state; if(!s) return;
+  ctx.save();
+  if(s.shake>0) ctx.translate((Math.random()-0.5)*s.shake, (Math.random()-0.5)*s.shake);
+  ctx.fillStyle='#0d0f0d'; ctx.fillRect(0,0,W,H);
+
+  if(s.isIce){
+    ctx.fillStyle='#1a3a4a'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#2a6a8a'; ctx.lineWidth=1;
+    for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  } else {
+    ctx.strokeStyle='#142614'; ctx.lineWidth=1;
+    for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  }
+
+  for(const w of s.walls){ctx.fillStyle=s.isIce?'#0f2f3f':'#1b2f1b'; ctx.fillRect(w.x,w.y,w.w,w.h); ctx.strokeStyle=s.isIce?'#2a6a8a':'#2a4a2a'; ctx.strokeRect(w.x+0.5,w.y+0.5,w.w-1,w.h-1)}
+
+  const el=s.elevator, open = s.fixedCount>=s.totalMachines;
+  ctx.fillStyle=open?'#1b3f2f':'#1a1a1a'; ctx.fillRect(el.x,el.y,el.w,el.h);
+  ctx.strokeStyle=open?'#7dff9a':'#3a3a3a'; ctx.lineWidth=2; ctx.strokeRect(el.x,el.y,el.w,el.h);
+  ctx.fillStyle=open?'#7dff9a':'#4a4a4a'; ctx.font='bold 20px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('⬇', el.x+el.w/2, el.y+el.h/2+1);
+
+  for(const m of s.machines){
+    ctx.fillStyle=m.fixed?'#2a5f2a':'#3a2a10';
+    ctx.strokeStyle=m.fixed?'#7dff9a':'#ffcc55';
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.r,0,Math.PI*2); ctx.fill();
+    ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=m.fixed?'#c8ffc8':'#ffcc55';
+    ctx.font='bold 15px Courier New'; ctx.fillText(m.fixed?'✔':'⚙', m.x, m.y+1);
+    if(!m.fixed && m.progress>0){
+      const pct=m.progress/m.needed;
+      ctx.fillStyle='#000'; ctx.fillRect(m.x-18, m.y-m.r-11, 36, 6);
+      ctx.fillStyle='#7dff9a'; ctx.fillRect(m.x-18, m.y-m.r-11, 36*pct, 6);
+    }
+  }
+
+  if(s.floorItems){
+    for(const fi of s.floorItems){
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(fi.item.icon, fi.x, fi.y);
+    }
+  }
+
+  for(const card of s.cards){
+    ctx.fillStyle='#ffcc55'; ctx.fillRect(card.x-8, card.y-11, 16, 22);
+    ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.strokeRect(card.x-8, card.y-11, 16, 22);
+    ctx.fillStyle='#000'; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('?', card.x, card.y);
+  }
+
+  for(const tr of s.trail){
+    const a = Math.max(0, tr.life/tr.maxLife);
+    ctx.globalAlpha = a*0.5; ctx.fillStyle = '#c47dff';
+    ctx.fillRect(tr.x-tr.size/2, tr.y-tr.size/2, tr.size, tr.size);
+  }
+  ctx.globalAlpha = 1;
+
+  for(const pt of s.particles){
+    ctx.globalAlpha=Math.max(0, pt.life*2);
+    ctx.fillStyle=pt.color; ctx.fillRect(pt.x-2, pt.y-2, 4, 4);
+  }
+  ctx.globalAlpha=1;
+
+  if(selectedChar.id === 'gift'){
+    let auraRadius = save.equippedDecorations.includes('kr_coal') ? 160 : 120;
+    ctx.globalAlpha = s.giftAuraActive ? 0.25 : 0.1;
+    ctx.fillStyle = s.giftAuraActive ? '#ff6b6b' : '#ffffff';
+    ctx.beginPath(); ctx.arc(s.player.x, s.player.y, auraRadius, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = s.giftAuraActive ? '#ff6b6b' : '#888';
+    ctx.lineWidth = 2; ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  for(const mon of s.monsters){
+    const kr=KRUGERS.find(k=>k.id===mon.typeId);
+
+    if (kr.id === 'mimic') {
+        ctx.globalAlpha = mon.sleeping ? 0.08 : 0.25;
+        ctx.fillStyle = '#9b59b6';
+        ctx.beginPath();
+        ctx.arc(mon.x, mon.y, 160, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = '#9b59b6';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+    }
+
+    if(kr.id === 'mimic' && mon.sleeping){
+        ctx.globalAlpha = 0.5;
+    }
+
+    if((kr.id==='snowball'||kr.id==='neon') && (s.isDark || s.forceDarkT > 0)){
+      const dLight = dist(mon, s.player);
+      if(dLight < 200){
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#ff2222';
+        ctx.beginPath(); ctx.arc(mon.x, mon.y, 200, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+    if(kr.id==='black' && mon.disguised){
+      ctx.fillStyle='#111'; ctx.fillRect(mon.x-8, mon.y-11, 16, 22);
+      ctx.strokeStyle='#555'; ctx.lineWidth=1; ctx.strokeRect(mon.x-8, mon.y-11, 16, 22);
+      ctx.fillStyle='#ff4444'; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('?', mon.x, mon.y);
+      continue;
+    }
+    ctx.beginPath(); ctx.arc(mon.x, mon.y, mon.r, 0, Math.PI*2);
+    ctx.fillStyle=kr.color; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#000';
+    ctx.fillRect(mon.x-5, mon.y-4, 4, 4);
+    ctx.fillRect(mon.x+2, mon.y-4, 4, 4);
+    if(mon.stunT > 0){
+      ctx.fillStyle='#ffdd00'; ctx.font='bold 12px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('★', mon.x, mon.y - mon.r - 6);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  for(const b of s.bullets){
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    ctx.fillStyle = b.type==='drain' ? '#ffb6c1' : '#ff2200'; 
+    ctx.fill();
+  }
+
+  const p=s.player;
+  if(p.giftT > 0){
+    ctx.fillStyle='#ff6b6b'; ctx.fillRect(p.x-p.r*1.5, p.y-p.r*1.5, p.r*3, p.r*3);
+    ctx.strokeStyle='#ffcc00'; ctx.lineWidth=2; ctx.strokeRect(p.x-p.r*1.5, p.y-p.r*1.5, p.r*3, p.r*3);
+    ctx.fillStyle='#ffcc00'; ctx.fillRect(p.x-2, p.y-p.r*1.5, 4, p.r*3);
+    ctx.fillRect(p.x-p.r*1.5, p.y-2, p.r*3, 4);
+  } else {
+    if(p.invuln>0 && Math.floor(p.invuln*20)%2===0) ctx.globalAlpha=0.4;
+    ctx.fillStyle='#2ecc71'; ctx.fillRect(p.x-p.r, p.y-p.r, p.r*2, p.r*2);
+    ctx.strokeStyle='#1a7a44'; ctx.lineWidth=Math.max(2, p.r*0.08);
+    ctx.strokeRect(p.x-p.r, p.y-p.r, p.r*2, p.r*2);
+    ctx.fillStyle='#fff';
+    ctx.fillRect(p.x-p.r*0.4, p.y-p.r*0.25, p.r*0.3, p.r*0.4);
+    ctx.fillRect(p.x+p.r*0.1, p.y-p.r*0.25, p.r*0.3, p.r*0.4);
+    ctx.fillStyle='#000';
+    ctx.fillRect(p.x-p.r*0.3, p.y-p.r*0.15, p.r*0.15, p.r*0.2);
+    ctx.fillRect(p.x+p.r*0.2, p.y-p.r*0.15, p.r*0.15, p.r*0.2);
+    ctx.globalAlpha=1;
+  }
+  ctx.restore();
+
+  if((s.isDark || s.forceDarkT > 0) && p.darknessOffT <= 0){
+    const radius = getVisionRadius();
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.6, 'rgba(0,0,0,0.6)');
+    grad.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+    if(selectedChar.id === 'bait' || selectedChar.id === 'svetlyachok'){
+      for(const m of s.machines){
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath(); ctx.arc(m.x, m.y, m.r+2, 0, Math.PI*2);
+        ctx.strokeStyle = '#ffcc55'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = m.fixed ? '#7dff9a' : '#ffcc55';
+        ctx.font = 'bold 14px Courier New'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(m.fixed?'✔':'⚙', m.x, m.y+1);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  if(save.eventActive && s.snowflakes){
+    ctx.fillStyle = '#ffffff';
+    for(const f of s.snowflakes){
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.size, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  if(s.messageT>0 && s.message){
+    ctx.globalAlpha=Math.min(1, s.messageT*2);
+    const mw=Math.min(440, W-40);
+    ctx.fillStyle='rgba(10,10,10,0.9)'; ctx.fillRect(W/2-mw/2, H-110, mw, 30);
+    ctx.strokeStyle='#2a4a2a'; ctx.lineWidth=1; ctx.strokeRect(W/2-mw/2, H-110, mw, 30);
+    ctx.fillStyle='#c8ffc8'; ctx.font='13px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(s.message, W/2, H-95);
+    ctx.globalAlpha=1;
+  }
+}
+
+function loop(t){
+  if(!running) return;
+  const dt=Math.min(0.05, (t-lastT)/1000 || 0);
+  lastT=t;
+  update(dt); updateHUD(); draw();
+  requestAnimationFrame(loop);
+}
+
+// МАГАЗИН
+let shopPool = [];
+function showShopUI(){
+    running = false;
+    shopPool = [];
+    let r = Math.random() * 100;
+    let item1 = r<50?ITEMS[0]:(r<75?ITEMS[1]:(r<90?ITEMS[2]:(r<98?ITEMS[3]:ITEMS[4])));
+    r = Math.random() * 100;
+    let item2 = r<50?ITEMS[0]:(r<75?ITEMS[1]:(r<90?ITEMS[2]:(r<98?ITEMS[3]:ITEMS[4])));
+    r = Math.random() * 100;
+    let item3 = r<50?ITEMS[0]:(r<75?ITEMS[1]:(r<90?ITEMS[2]:(r<98?ITEMS[3]:ITEMS[4])));
+    
+    shopPool = [item1, item2, item3];
+    
+    $('shopGrid').innerHTML = '';
+    shopPool.forEach((item, idx) => {
+        let finalPrice = item.price;
+        if(save.equippedDecorations.includes('kr_avenger')) finalPrice = Math.floor(finalPrice * 0.5);
+        
+        let div = document.createElement('div');
+        div.className = 'shop-item';
+        div.style.width = '120px';
+        div.style.padding = '10px';
+        div.style.background = '#111';
+        div.style.border = '1px solid #4aff4a';
+        div.style.borderRadius = '8px';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `<div style="font-size:36px">${item.icon}</div><div style="font-size:12px;color:#fff;margin:5px 0;">${item.name}</div><div style="font-size:11px;color:#ffcc55;">${finalPrice} 🃏 ${save.equippedDecorations.includes('kr_avenger')?'(СКИДКА)':''}</div><div style="font-size:9px;color:#888">${item.rarity}</div>`;
+        div.onclick = () => buyShopItem(idx);
+        $('shopGrid').appendChild(div);
+    });
+    $('shopDesc').textContent = 'У тебя: ' + state.cardsVal + ' 🃏';
+    showScreen('shopScreen');
+}
+
+function buyShopItem(idx){
+    let item = shopPool[idx];
+    let finalPrice = item.price;
+    if(save.equippedDecorations.includes('kr_avenger')) finalPrice = Math.floor(finalPrice * 0.5);
+
+    if (state.cardsVal >= finalPrice) {
+        state.cardsVal -= finalPrice;
+        state.inventory.push(item);
+        updateInventoryUI();
+        state.shopAngry = false;
+        updateHUD();
+        $('shopDesc').textContent = 'Куплено! Закрываю магазин...';
+        setTimeout(closeShop, 800);
+    } else {
+        $('shopDesc').textContent = 'Не хватает карт!';
+    }
+}
+
+$('btnShopClose').onclick = () => {
+    state.shopAngry = true;
+    closeShop();
+};
+
+function closeShop(){
+    showScreen(null);
+    running = true;
+    lastT = performance.now();
+    requestAnimationFrame(loop);
+}
+
+// КАРТЫ
+let cardChoices = [];
+function showCardsUI(){
+    running = false;
+    cardChoices = [];
+    
+    let availableCards = CARDS.filter(c => (save.cardPicked[c.id]||0) < c.max);
+    if(availableCards.length === 0) {
+        availableCards = CARDS.filter(c => c.max > 900);
+    }
+    
+    let pool = [...availableCards];
+    for(let i=0; i<3; i++) {
+        if(pool.length === 0) break;
+        let total = pool.reduce((a,c)=>a+c.weight, 0);
+        let roll = Math.random() * total;
+        let chosen = pool[0];
+        for(let c of pool) { roll -= c.weight; if(roll<=0){chosen=c;break;} }
+        cardChoices.push(chosen);
+        pool = pool.filter(c => c.id !== chosen.id);
+    }
+    
+    $('cardsGrid').innerHTML = '';
+    cardChoices.forEach((card, idx) => {
+        let div = document.createElement('div');
+        div.style.width = '160px';
+        div.style.padding = '15px';
+        div.style.background = '#0f140f';
+        div.style.border = '2px solid #ff9de2';
+        div.style.borderRadius = '8px';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `<div style="font-size:14px;color:#ff9de2;margin-bottom:5px;font-weight:bold;">${card.name}</div><div style="font-size:11px;color:#fff">${card.desc}</div>`;
+        div.onclick = () => pickCard(card.id);
+        $('cardsGrid').appendChild(div);
+    });
+    showScreen('cardsScreen');
+}
+
+function pickCard(id){
+    save.cardPicked[id] = (save.cardPicked[id] || 0) + 1;
+    
+    if (id === 'stamina') {
+        state.player.baseStaminaMax += 1;
+        state.player.staminaMax += 1;
+        state.player.stamina += 1;
+    } else if (id === 'hp') {
+        state.maxLives += 1;
+        state.lives += 1;
+    } else if (id === 'cards') {
+        state.cardsVal += 15;
+    } else if (id === 'item') {
+        if(state.inventory.length < 3) {
+            let r = Math.random() * 100;
+            let item = r<50?ITEMS[0]:(r<75?ITEMS[1]:(r<90?ITEMS[2]:(r<98?ITEMS[3]:ITEMS[4])));
+            state.inventory.push(item);
+            updateInventoryUI();
+        } else {
+            state.cardsVal += 20;
+        }
+    } else if (id === 'dark') {
+        save.darkChanceReduction += 5;
+    } else if (id === 'fix') {
+        save.repairBonus = 0.5;
+    }
+    
+    writeSave(save);
+    updateHUD();
+    showScreen(null);
+    running = true;
+    lastT = performance.now();
+    requestAnimationFrame(loop);
+}
+
+$('btnPlay').onclick=()=>{
+  if(!selectedChar){ alert('Сначала одень персонажа!'); showScreen('charsScreen'); renderChars(); return; }
+  if(!save.unlocked.includes(selectedChar.id)){ alert('Персонаж не куплен!'); return; }
+  showScreen(null);
+  newGame();
+  running=true; lastT=performance.now();
+  requestAnimationFrame(loop);
+};
+$('btnChars').onclick=()=>{showScreen('charsScreen');currentTab='normal';document.querySelectorAll('#charsScreen .tab').forEach(t=>t.classList.remove('active'));$('tabNormal').classList.add('active');renderChars()};
+$('btnDecor').onclick=()=>{showScreen('decorScreen');renderDecor()};
+$('btnEvents').onclick=()=>{showScreen('eventsScreen');updateEventButtons()};
+$('btnCodes').onclick=()=>{showScreen('codesScreen');$('codeInput').value='';$('codeMsg').textContent=''};
+$('btnReset').onclick=()=>{showScreen('resetScreen')};
+$('btnCharsBack').onclick=showMenu;
+$('btnDecorBack').onclick=showMenu;
+$('btnEventsBack').onclick=showMenu;
+$('btnCodesBack').onclick=showMenu;
+$('menuBook').onclick=()=>{showScreen('krugScreen');renderKrug()};
+$('btnKrugBack').onclick=showMenu;
+$('resetNo').onclick=showMenu;
+$('resetYes').onclick=()=>{
+  localStorage.removeItem(SAVE_KEY);
+  save=defaultSave(); selectedChar=null;
+  writeSave(save); showMenu();
+};
+$('ovRetry').onclick=()=>{
+  if(!selectedChar){showMenu();return}
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('on'));
+  newGame();
+  running=true; lastT=performance.now();
+  requestAnimationFrame(loop);
+};
+$('ovMenu').onclick=showMenu;
+
+resize();
+showMenu();
+ctx.fillStyle='#0d0f0d'; ctx.fillRect(0,0,W,H);
+</script>
+</body>
+  </html>
